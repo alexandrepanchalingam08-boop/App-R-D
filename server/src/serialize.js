@@ -27,6 +27,7 @@ export function serializeVersion(v) {
     date: v.date,
     closed: v.closed,
     ingredients: JSON.parse(v.ingredients || '[]'),
+    procede: v.procede || '',
     composition: (v.composition || [])
       .slice()
       .sort((a, b) => a.order - b.order)

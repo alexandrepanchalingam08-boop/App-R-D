@@ -46,7 +46,7 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { kind, name, project, supplier, date, ver, code, ingredients, composition } = req.body || {};
+  const { kind, name, project, supplier, date, ver, code, ingredients, composition, procede } = req.body || {};
   if (!SESSION_KINDS.includes(kind)) return res.status(400).json({ error: 'Nature de fiche invalide.' });
   if (!name?.trim()) return res.status(400).json({ error: 'Le nom est obligatoire.' });
 
@@ -79,6 +79,7 @@ router.post('/', async (req, res) => {
             date: date || new Date().toISOString().slice(0, 10),
             closed: false,
             ingredients: JSON.stringify(ingList),
+            procede: procede?.trim() || null,
             composition: isFull
               ? { create: compRows.map((r) => ({ name: r.name, dose: r.dose, unit: r.unit, refSessionId: r.refSessionId, order: r.order })) }
               : undefined
@@ -102,7 +103,7 @@ router.post('/:id/versions', async (req, res) => {
   const session = await prisma.tastingSession.findUnique({ where: { id: req.params.id }, include: { versions: true } });
   if (!session) return res.status(404).json({ error: 'Session introuvable.' });
 
-  const { ver, code, date, ingredients, composition } = req.body || {};
+  const { ver, code, date, ingredients, composition, procede } = req.body || {};
   const isFull = session.kind === 'PRODUIT_COMPLET';
   const compRows = isFull ? parseComposition(composition) : [];
   const freeIng = !isFull ? parseFreeIngredients(ingredients) : [];
@@ -116,6 +117,7 @@ router.post('/:id/versions', async (req, res) => {
       date: date || new Date().toISOString().slice(0, 10),
       closed: false,
       ingredients: JSON.stringify(ingList),
+      procede: procede?.trim() || null,
       composition: isFull
         ? { create: compRows.map((r) => ({ name: r.name, dose: r.dose, unit: r.unit, refSessionId: r.refSessionId, order: r.order })) }
         : undefined

@@ -66,7 +66,7 @@ export default function SessionDetail() {
   function toggleNew() {
     if (!newOpen) {
       const last = session.versions[session.versions.length - 1];
-      setNv({ ver: '', code: '', date: new Date().toISOString().slice(0, 10), ing: last.ingredients.join(', ') });
+      setNv({ ver: '', code: '', date: new Date().toISOString().slice(0, 10), ing: last.ingredients.join(', '), procede: last.procede || '' });
       setNvComp([]);
     }
     setNewOpen(!newOpen);
@@ -77,8 +77,8 @@ export default function SessionDetail() {
     setErr(null);
     try {
       const payload = isFull
-        ? { ver: nv.ver, code: nv.code, date: nv.date, composition: nvComp }
-        : { ver: nv.ver, code: nv.code, date: nv.date, ingredients: nv.ing };
+        ? { ver: nv.ver, code: nv.code, date: nv.date, composition: nvComp, procede: nv.procede }
+        : { ver: nv.ver, code: nv.code, date: nv.date, ingredients: nv.ing, procede: nv.procede };
       const res = await api.addVersion(session.id, payload);
       await refresh();
       setNewOpen(false);
@@ -215,6 +215,19 @@ export default function SessionDetail() {
               </div>
             )}
             {isFull && <CompositionBuilder rows={nvComp} onChange={setNvComp} sessions={sessions.filter((s) => s.id !== session.id)} />}
+            <div className="field">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
+                <label style={{ margin: 0 }}>Mise en œuvre (temps de cuisson, équipement…)</label>
+                <MicButton value={nv.procede} onText={(text) => setNv({ ...nv, procede: text })} />
+              </div>
+              <textarea
+                className="input"
+                style={{ borderRadius: 'var(--radius-md)', minHeight: 70 }}
+                placeholder="ex. Cuisson 12 min à 180°C, mélangeur planétaire vitesse 2"
+                value={nv.procede}
+                onChange={(e) => setNv({ ...nv, procede: e.target.value })}
+              />
+            </div>
             {err && (
               <div style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-accent-200)', color: 'var(--color-accent-800)', padding: '10px 13px', fontSize: 12.5 }}>{err}</div>
             )}
@@ -243,6 +256,12 @@ export default function SessionDetail() {
             </span>
           ))}
         </div>
+        {currentVersion.procede && (
+          <div style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-neutral-100)', padding: '9px 11px', fontSize: 12.5, color: 'var(--color-neutral-800)' }}>
+            <div style={{ fontWeight: 600, fontSize: 11, color: 'var(--color-neutral-600)', marginBottom: 3 }}>Mise en œuvre</div>
+            {currentVersion.procede}
+          </div>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
           {currentVersion.grades.map((g) => (
             <div key={g.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, fontSize: 13, borderBottom: '1px solid var(--color-divider)', paddingBottom: 7 }}>

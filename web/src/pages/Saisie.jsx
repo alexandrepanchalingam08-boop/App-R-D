@@ -77,6 +77,12 @@ export default function Saisie() {
             </span>
           ))}
         </div>
+        {version.procede && (
+          <div style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-neutral-100)', padding: '9px 11px', fontSize: 12.5, color: 'var(--color-neutral-800)' }}>
+            <div style={{ fontWeight: 600, fontSize: 11, color: 'var(--color-neutral-600)', marginBottom: 3 }}>Mise en œuvre</div>
+            {version.procede}
+          </div>
+        )}
         <div style={{ fontSize: 12, color: 'var(--color-neutral-700)' }}>
           {version.grades.length ? 'Déjà saisi par ' + version.grades.map((g) => g.tasterName).join(', ') : 'Vous êtes le premier à saisir cette version.'}
         </div>

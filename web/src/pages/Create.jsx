@@ -32,6 +32,7 @@ export default function Create() {
   const [ver, setVer] = useState('V1');
   const [code, setCode] = useState('');
   const [ing, setIng] = useState('');
+  const [procede, setProcede] = useState('');
   const [comp, setComp] = useState([]);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -64,7 +65,8 @@ export default function Create() {
         ver,
         code,
         ingredients: ing,
-        composition: comp
+        composition: comp,
+        procede
       });
       await refresh();
       navigate('/session/' + res.session.id);
@@ -133,6 +135,16 @@ export default function Create() {
           </div>
         )}
         {isFull && <CompositionBuilder rows={comp} onChange={setComp} sessions={sessions} />}
+        <div className="field">
+          <FieldLabel value={procede} onText={setProcede}>Mise en œuvre (temps de cuisson, équipement…)</FieldLabel>
+          <textarea
+            className="input"
+            style={{ borderRadius: 'var(--radius-md)', minHeight: 70 }}
+            placeholder="ex. Cuisson 12 min à 180°C, mélangeur planétaire vitesse 2"
+            value={procede}
+            onChange={(e) => setProcede(e.target.value)}
+          />
+        </div>
         <button type="button" className="btn btn-primary" disabled={busy} style={{ borderRadius: 999, minHeight: 48 }} onClick={submit}>
           Créer la session
         </button>

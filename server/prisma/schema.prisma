@@ -77,6 +77,7 @@ model Version {
   date        String
   closed      Boolean  @default(false)
   ingredients String   @default("[]") // JSON array of free-text ingredient strings (Ingrédient / Benchmark)
+  procede     String? // Free-text: mise en œuvre (temps de cuisson, équipement utilisé, etc.)
   createdAt   DateTime @default(now())
 
   composition CompositionRow[]
