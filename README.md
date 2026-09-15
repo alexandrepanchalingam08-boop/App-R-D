@@ -25,10 +25,12 @@ Hébergement 100% gratuit : **Supabase** (base Postgres + stockage fichiers, pla
 
 1. [supabase.com](https://supabase.com) → **New project** (gratuit, pas de carte requise).
 2. Bouton **Connect** (en haut du dashboard) → copiez **deux** chaînes, toutes les deux depuis l'onglet **Direct** / Type **URI** :
-   - **Transaction pooler** (port `6543`) → `DATABASE_URL`
-   - **Session pooler** (port `5432`) → `DIRECT_URL`
+   - **Transaction pooler** (port `6543`) → `DATABASE_URL`, en ajoutant `?pgbouncer=true` à la fin de l'URL
+   - **Session pooler** (port `5432`) → `DIRECT_URL`, telle quelle
 
    ⚠️ Ne prenez **pas** « Direct connection » pour `DIRECT_URL` — cette connexion est IPv6 uniquement et injoignable depuis Vercel (et la plupart des hébergeurs serverless). Le Session pooler donne une vraie connexion (pas du pooling transactionnel, donc compatible avec les migrations) mais reste accessible en IPv4.
+
+   ⚠️ N'oubliez pas `?pgbouncer=true` sur `DATABASE_URL` — sans ça, Prisma utilise des requêtes préparées qui entrent en conflit sur le Transaction pooler (erreur `prepared statement "sX" already exists`).
 3. **API Keys** (menu de gauche) → copiez `Project URL` (→ `SUPABASE_URL`) et la clé **`service_role`** / **Secret key** (→ `SUPABASE_SERVICE_ROLE_KEY`, à garder secrète, elle contourne les règles d'accès).
 4. **Storage** → créez un bucket nommé `photos`, réglé en **Public**.
 
