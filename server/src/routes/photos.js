@@ -21,7 +21,7 @@ const upload = multer({
 const router = Router();
 router.use(requireAuth);
 
-router.post('/sessions/:id/photos', upload.single('photo'), async (req, res, next) => {
+router.post('/:id/photos', upload.single('photo'), async (req, res, next) => {
   try {
     const session = await prisma.tastingSession.findUnique({ where: { id: req.params.id } });
     if (!session) return res.status(404).json({ error: 'Session introuvable.' });

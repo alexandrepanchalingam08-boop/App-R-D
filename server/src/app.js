@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import sessionRoutes from './routes/sessions.js';
 import photoRoutes from './routes/photos.js';
+import adminRoutes from './routes/admin.js';
 import { PrismaSessionStore } from './sessionStore.js';
 
 const app = express();
@@ -41,7 +42,8 @@ app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/sessions', sessionRoutes);
-app.use('/api', photoRoutes);
+app.use('/api/sessions', photoRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api', (req, res) => res.status(404).json({ error: 'Route API introuvable.' }));
 
 // eslint-disable-next-line no-unused-vars

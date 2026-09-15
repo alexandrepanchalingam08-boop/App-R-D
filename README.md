@@ -69,10 +69,11 @@ Pensez à changer ces mots de passe (et à créer vos propres comptes depuis l'o
 ## Déploiement (Vercel, gratuit)
 
 1. Sur [vercel.com](https://vercel.com), **Add New → Project**, connectez le dépôt GitHub. `vercel.json` à la racine configure déjà le build et le routage (`/api/*` vers le serveur, le reste vers l'app React) — Vercel le détecte automatiquement.
-2. Avant de déployer, ajoutez les variables d'environnement (**Settings → Environment Variables**) : `DATABASE_URL`, `DIRECT_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET=photos`, `SESSION_SECRET=<valeur aléatoire>` — les mêmes valeurs que dans votre `.env` local.
-3. Lancez le déploiement.
-4. Les tables ne se créent pas toutes seules : depuis votre machine, avec `DATABASE_URL`/`DIRECT_URL` pointant vers Supabase, lancez une fois `cd server && npx prisma migrate deploy && node prisma/seed.js` pour créer le schéma et les comptes de démo.
-5. Ouvrez l'URL fournie par Vercel — c'est l'app, en ligne, gratuite.
+2. Avant de déployer, ajoutez les variables d'environnement (**Settings → Environment Variables**) : `DATABASE_URL`, `DIRECT_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET=photos`, `SESSION_SECRET=<valeur aléatoire>`, `SEED_TOKEN=<une autre valeur aléatoire>`.
+3. Lancez le déploiement — les migrations tournent automatiquement à chaque build (`prisma migrate deploy` fait partie du build command), pas besoin de les lancer à la main.
+4. Une fois déployé, ouvrez `https://votre-app.vercel.app/api/admin/seed?token=<votre SEED_TOKEN>` dans le navigateur, une fois, pour créer les comptes de démo et les sessions d'exemple.
+5. Ouvrez l'URL de l'app — c'est en ligne, gratuit.
+6. *(optionnel)* Une fois le seed fait, retirez `SEED_TOKEN` des variables d'environnement Vercel pour fermer cette route.
 
 **Limites du plan gratuit Vercel** à connaître :
 - Photos limitées à 4 Mo (taille max d'une requête pour une fonction serverless) — largement suffisant pour une photo prise depuis l'app, plus juste pour une photo haute résolution importée depuis la galerie.
