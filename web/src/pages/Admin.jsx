@@ -6,7 +6,7 @@ import { pillStyle } from '../lib/pill.js';
 import { api } from '../api.js';
 
 function blankForm() {
-  return { firstName: '', lastName: '', email: '', password: '', pole: 'RD' };
+  return { firstName: '', lastName: '', username: '', password: '', pole: 'RD' };
 }
 
 export default function Admin() {
@@ -25,8 +25,8 @@ export default function Admin() {
       setErr('Nom et prénom sont obligatoires.');
       return;
     }
-    if (!form.email.trim() || !form.password || form.password.length < 8) {
-      setErr('Email valide et mot de passe (8 caractères min.) requis.');
+    if (!form.username.trim() || !form.password || form.password.length < 8) {
+      setErr("Nom d'utilisateur et mot de passe (8 caractères min.) requis.");
       return;
     }
     setBusy(true);
@@ -74,14 +74,14 @@ export default function Admin() {
           </div>
         </div>
         <div className="field">
-          <label>Email</label>
+          <label>Nom d'utilisateur</label>
           <input
             className="input"
-            type="email"
+            type="text"
             style={{ borderRadius: 999, minHeight: 46 }}
-            placeholder="camille.durand@quick.fr"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder="camille.durand"
+            value={form.username}
+            onChange={(e) => setForm({ ...form, username: e.target.value })}
           />
         </div>
         <div className="field">

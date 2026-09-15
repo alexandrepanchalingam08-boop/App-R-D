@@ -14,17 +14,24 @@ router.get('/', async (req, res) => {
   res.json({ users: users.map(publicUser) });
 });
 
+const USERNAME_RE = /^[a-z0-9._-]{3,32}$/;
+
 router.post('/', requireAdmin, async (req, res) => {
-  const { firstName, lastName, pole, email, password } = req.body || {};
+  const { firstName, lastName, pole, username, password } = req.body || {};
   if (!firstName?.trim() || !lastName?.trim()) {
     return res.status(400).json({ error: 'Nom et prénom sont obligatoires.' });
   }
   if (!POLES.includes(pole)) return res.status(400).json({ error: 'Pôle invalide.' });
-  if (!email?.trim() || !password || password.length < 8) {
-    return res.status(400).json({ error: 'Email valide et mot de passe (8 caractères min.) requis.' });
+  const normalizedUsername = (username || '').toLowerCase().trim();
+  if (!USERNAME_RE.test(normalizedUsername)) {
+    return res.status(400).json({
+      error: "Nom d'utilisateur invalide (3 à 32 caractères : lettres, chiffres, points, tirets, underscores)."
+    });
   }
-  const normalizedEmail = email.toLowerCase().trim();
-  const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+  if (!password || password.length < 8) {
+    return res.status(400).json({ error: 'Mot de passe (8 caractères min.) requis.' });
+  }
+  const existing = await prisma.user.findUnique({ where: { username: normalizedUsername } });
   if (existing) return res.status(409).json({ error: 'Ce compte existe déjà.' });
 
   const user = await prisma.user.create({
@@ -32,7 +39,7 @@ router.post('/', requireAdmin, async (req, res) => {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       pole,
-      email: normalizedEmail,
+      username: normalizedUsername,
       passwordHash: hashPassword(password)
     }
   });

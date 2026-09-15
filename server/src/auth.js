@@ -13,7 +13,7 @@ export function publicUser(u) {
   if (!u) return null;
   return {
     id: u.id,
-    email: u.email,
+    username: u.username,
     firstName: u.firstName,
     lastName: u.lastName,
     pole: u.pole,

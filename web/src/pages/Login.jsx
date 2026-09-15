@@ -6,7 +6,7 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -16,7 +16,7 @@ export default function Login() {
     setBusy(true);
     setErr(null);
     try {
-      await login(email.trim(), password);
+      await login(username.trim(), password);
       navigate(location.state?.from || '/en-cours', { replace: true });
     } catch (e2) {
       setErr(e2.message);
@@ -61,16 +61,16 @@ export default function Login() {
         </div>
 
         <div className="field">
-          <label>Email</label>
+          <label>Nom d'utilisateur</label>
           <input
             className="input"
-            type="email"
+            type="text"
             required
             autoComplete="username"
             style={{ minHeight: 46, fontSize: 15 }}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="prenom.nom@quick.fr"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="prenom.nom"
           />
         </div>
         <div className="field">

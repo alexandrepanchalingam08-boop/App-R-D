@@ -2,12 +2,12 @@ import bcrypt from 'bcryptjs';
 import { prisma } from './db.js';
 
 const USERS = [
-  { first: 'Amélie', last: 'Rouvier', pole: 'RD', admin: true, email: 'amelie.rouvier@quick.fr' },
-  { first: 'Karim', last: 'Benali', pole: 'RD', email: 'karim.benali@quick.fr' },
-  { first: 'Sophie', last: 'Lemoine', pole: 'QUALITE', email: 'sophie.lemoine@quick.fr' },
-  { first: 'Thomas', last: 'Vasseur', pole: 'MARKETING', email: 'thomas.vasseur@quick.fr' },
-  { first: 'Inès', last: 'Maréchal', pole: 'ACHATS', email: 'ines.marechal@quick.fr' },
-  { first: 'Julien', last: 'Perrot', pole: 'RD', email: 'julien.perrot@quick.fr' }
+  { first: 'Amélie', last: 'Rouvier', pole: 'RD', admin: true, username: 'amelie.rouvier' },
+  { first: 'Karim', last: 'Benali', pole: 'RD', username: 'karim.benali' },
+  { first: 'Sophie', last: 'Lemoine', pole: 'QUALITE', username: 'sophie.lemoine' },
+  { first: 'Thomas', last: 'Vasseur', pole: 'MARKETING', username: 'thomas.vasseur' },
+  { first: 'Inès', last: 'Maréchal', pole: 'ACHATS', username: 'ines.marechal' },
+  { first: 'Julien', last: 'Perrot', pole: 'RD', username: 'julien.perrot' }
 ];
 const DEFAULT_PASSWORD = 'Degustation2026!';
 
@@ -83,10 +83,10 @@ export async function runSeed() {
   const userByFullName = {};
   for (const u of USERS) {
     const created = await prisma.user.upsert({
-      where: { email: u.email },
+      where: { username: u.username },
       update: {},
       create: {
-        email: u.email,
+        username: u.username,
         passwordHash: bcrypt.hashSync(DEFAULT_PASSWORD, 10),
         firstName: u.first,
         lastName: u.last,

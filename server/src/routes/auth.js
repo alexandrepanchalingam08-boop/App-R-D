@@ -5,9 +5,9 @@ import { checkPassword, publicUser, requireAuth } from '../auth.js';
 const router = Router();
 
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body || {};
-  if (!email || !password) return res.status(400).json({ error: 'Email et mot de passe requis.' });
-  const user = await prisma.user.findUnique({ where: { email: String(email).toLowerCase().trim() } });
+  const { username, password } = req.body || {};
+  if (!username || !password) return res.status(400).json({ error: "Nom d'utilisateur et mot de passe requis." });
+  const user = await prisma.user.findUnique({ where: { username: String(username).toLowerCase().trim() } });
   if (!user || !checkPassword(password, user.passwordHash)) {
     return res.status(401).json({ error: 'Identifiants incorrects.' });
   }

@@ -12,7 +12,7 @@ Application interne Quick (pôle R&D) pour centraliser l'historique des dégusta
 - **Achats et prix** — un compte R&D rattache un acheteur et fait le « passage en FR » ; l'acheteur renseigne alors le prix depuis son propre onglet « Mes achats », avec filtre par comité inno.
 - **Admin** — création des comptes, pôle de rattachement (R&D / Marketing / Qualité / Achats).
 
-Authentification par email/mot de passe (comptes créés par un admin), droits différenciés par pôle.
+Authentification par nom d'utilisateur/mot de passe (comptes créés par un admin), droits différenciés par pôle.
 
 ## Stack
 
@@ -55,14 +55,14 @@ Ouvrez http://localhost:5173. (Le développement local pointe directement sur vo
 
 Mot de passe pour tous : `Degustation2026!`
 
-| Email | Pôle | Rôle |
+| Nom d'utilisateur | Pôle | Rôle |
 |---|---|---|
-| amelie.rouvier@quick.fr | R&D | admin |
-| karim.benali@quick.fr | R&D | |
-| julien.perrot@quick.fr | R&D | |
-| sophie.lemoine@quick.fr | Qualité | |
-| thomas.vasseur@quick.fr | Marketing | |
-| ines.marechal@quick.fr | Achats | |
+| amelie.rouvier | R&D | admin |
+| karim.benali | R&D | |
+| julien.perrot | R&D | |
+| sophie.lemoine | Qualité | |
+| thomas.vasseur | Marketing | |
+| ines.marechal | Achats | |
 
 Pensez à changer ces mots de passe (et à créer vos propres comptes depuis l'onglet Admin) avant tout usage réel.
 
