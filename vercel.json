@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd web && npm install && npm run build && cd ../server && npm install && npx prisma generate",
+  "outputDirectory": "web/dist",
+  "installCommand": "echo skip-root-install",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

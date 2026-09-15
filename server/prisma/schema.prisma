@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  // DATABASE_URL: Supabase's pooled (Supavisor/PgBouncer) connection string —
+  // required on serverless (many short-lived connections per request).
+  url       = env("DATABASE_URL")
+  // DIRECT_URL: Supabase's direct connection — migrations need a real
+  // session, not a transaction-pooled one.
+  directUrl = env("DIRECT_URL")
+}
+
+// SQLite has no native enum support in Prisma — these are validated in
+// application code (see src/constants.js) against the same value sets.
+// Pole: RD | MARKETING | QUALITE | ACHATS
+// SessionKind: INGREDIENT | BENCHMARK | PRODUIT_COMPLET
+// Unit: g | kg | ml | l | piece
+// PhotoLabel: ASPECT | PACKAGING | ETIQUETTE
+
+// Backs the express-session store (see src/sessionStore.js) — a login
+// session, distinct from a TastingSession (a tasted product/ingredient).
+model AuthSession {
+  sid       String   @id
+  data      String
+  expiresAt DateTime
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  pole         String
+  isAdmin      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  createdSessions TastingSession[] @relation("SessionCreatedBy")
+  boughtSessions  TastingSession[] @relation("SessionBuyer")
+  grades          Grade[]
+  photos          Photo[]
+  prices          Price[]
+}
+
+model TastingSession {
+  id         String   @id @default(cuid())
+  kind       String
+  name       String
+  project    String
+  supplier   String
+  frPassed   Boolean  @default(false)
+  comiteDate String?
+  createdAt  DateTime @default(now())
+
+  createdById String?
+  createdBy   User?   @relation("SessionCreatedBy", fields: [createdById], references: [id])
+
+  buyerId String?
+  buyer   User?   @relation("SessionBuyer", fields: [buyerId], references: [id])
+
+  versions Version[]
+  photos   Photo[]
+  price    Price?
+
+  referencedBy CompositionRow[] @relation("CompositionRef")
+}
+
+model Version {
+  id        String         @id @default(cuid())
+  sessionId String
+  session   TastingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  ver         String
+  code        String?
+  date        String
+  closed      Boolean  @default(false)
+  ingredients String   @default("[]") // JSON array of free-text ingredient strings (Ingrédient / Benchmark)
+  createdAt   DateTime @default(now())
+
+  composition CompositionRow[]
+  grades      Grade[]
+}
+
+model CompositionRow {
+  id        String  @id @default(cuid())
+  versionId String
+  version   Version @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  name String
+  dose String?
+  unit String  @default("g")
+
+  refSessionId String?
+  refSession   TastingSession? @relation("CompositionRef", fields: [refSessionId], references: [id])
+
+  order Int @default(0)
+}
+
+model Grade {
+  id        String  @id @default(cuid())
+  versionId String
+  version   Version @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  tasterName    String
+  submittedById String?
+  submittedBy   User?   @relation(fields: [submittedById], references: [id])
+
+  hedonicRaw Int
+  note       Float // hedonicRaw * 10/9, on the /10 scale used everywhere else
+  profile    String // JSON: { couleur, homog, odeur, fermete, fondant, sucre, sale, acide, amer, arome, persist, arriere }
+  jar        String // JSON: { sucre, fermete }
+  comment    String
+
+  createdAt DateTime @default(now())
+}
+
+model Photo {
+  id        String         @id @default(cuid())
+  sessionId String
+  session   TastingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  url   String
+  label String
+
+  uploadedById String?
+  uploadedBy   User?   @relation(fields: [uploadedById], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Price {
+  id        String         @id @default(cuid())
+  sessionId String         @unique
+  session   TastingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  amount String
+  dose   String
+  unit   String
+  date   String
+
+  byUserId String?
+  byUser   User?   @relation(fields: [byUserId], references: [id])
+
+  updatedAt DateTime @updatedAt
+}
