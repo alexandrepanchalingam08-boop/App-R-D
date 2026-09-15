@@ -4,9 +4,11 @@ const SpeechRecognitionAPI =
   typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
 
 // Small mic toggle that dictates into a text field via the browser's
-// built-in speech recognition — no server, no API key, no cost. Appends
-// each recognized utterance to the field's current value, so tapping it
-// again continues dictating rather than overwriting.
+// built-in speech recognition — no server, no API key, no cost. Updates the
+// field live as words are recognized (not just once at the end), so a
+// wrong transcription is visible immediately instead of landing as a
+// surprise; tapping again after stopping continues dictating rather than
+// overwriting what's already there.
 export default function MicButton({ value, onText, lang = 'fr-FR' }) {
   const [listening, setListening] = useState(false);
   const recRef = useRef(null);
@@ -20,15 +22,16 @@ export default function MicButton({ value, onText, lang = 'fr-FR' }) {
   function start() {
     const rec = new SpeechRecognitionAPI();
     rec.lang = lang;
-    rec.interimResults = false;
+    rec.interimResults = true;
     rec.continuous = false;
+    const baseValue = value;
+    const sep = baseValue && !/[\s\n]$/.test(baseValue) ? ' ' : '';
     rec.onresult = (e) => {
-      const text = Array.from(e.results)
-        .map((r) => r[0].transcript.trim())
-        .join(' ');
+      let text = '';
+      for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+      text = text.trim();
       if (!text) return;
-      const sep = value && !/[\s\n]$/.test(value) ? ' ' : '';
-      onText(value + sep + text);
+      onText(baseValue + sep + text);
     };
     rec.onend = () => setListening(false);
     rec.onerror = () => setListening(false);
