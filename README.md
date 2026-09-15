@@ -24,12 +24,12 @@ Hébergement 100% gratuit : **Supabase** (base Postgres + stockage fichiers, pla
 ## Créer le projet Supabase (une fois)
 
 1. [supabase.com](https://supabase.com) → **New project** (gratuit, pas de carte requise).
-2. **Project Settings → Database → Connection string** : copiez-y **deux** chaînes différentes (visibles sur la même page) :
-   - la connexion **pooled / Transaction** (port `6543`, contient `pgbouncer=true`) → `DATABASE_URL`
-   - la connexion **directe** (port `5432`) → `DIRECT_URL`
+2. Bouton **Connect** (en haut du dashboard) → copiez **deux** chaînes, toutes les deux depuis l'onglet **Direct** / Type **URI** :
+   - **Transaction pooler** (port `6543`) → `DATABASE_URL`
+   - **Session pooler** (port `5432`) → `DIRECT_URL`
 
-   (La pooled sert aux requêtes de l'app depuis les fonctions serverless ; la directe sert uniquement aux migrations.)
-3. **Project Settings → API** → copiez `Project URL` (→ `SUPABASE_URL`) et la clé **`service_role`** (→ `SUPABASE_SERVICE_ROLE_KEY`, à garder secrète, elle contourne les règles d'accès).
+   ⚠️ Ne prenez **pas** « Direct connection » pour `DIRECT_URL` — cette connexion est IPv6 uniquement et injoignable depuis Vercel (et la plupart des hébergeurs serverless). Le Session pooler donne une vraie connexion (pas du pooling transactionnel, donc compatible avec les migrations) mais reste accessible en IPv4.
+3. **API Keys** (menu de gauche) → copiez `Project URL` (→ `SUPABASE_URL`) et la clé **`service_role`** / **Secret key** (→ `SUPABASE_SERVICE_ROLE_KEY`, à garder secrète, elle contourne les règles d'accès).
 4. **Storage** → créez un bucket nommé `photos`, réglé en **Public**.
 
 ## Démarrage en local
