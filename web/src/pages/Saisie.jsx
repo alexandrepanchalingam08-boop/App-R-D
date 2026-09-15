@@ -9,6 +9,7 @@ import { GRILLE, HED, JAR_AXES, JAR_OPTIONS } from '../constants.js';
 import { pillStyle } from '../lib/pill.js';
 import { api } from '../api.js';
 import CompositionReadOnly from '../components/CompositionReadOnly.jsx';
+import MicButton from '../components/MicButton.jsx';
 
 function blankProfile() {
   const p = {};
@@ -160,7 +161,10 @@ export default function Saisie() {
 
       <section className="card elev-sm" style={{ borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', gap: 11 }}>
         <div className="field">
-          <label>Commentaire</label>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
+            <label style={{ margin: 0 }}>Commentaire</label>
+            <MicButton value={comment} onText={setComment} />
+          </div>
           <textarea
             className="input"
             style={{ borderRadius: 'var(--radius-md)', minHeight: 84 }}

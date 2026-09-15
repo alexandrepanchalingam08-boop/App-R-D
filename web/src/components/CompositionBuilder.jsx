@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { totalMass } from '../lib/compute.js';
 import { UNIT_LABELS } from '../constants.js';
+import MicButton from './MicButton.jsx';
 
 export default function CompositionBuilder({ rows, onChange, sessions }) {
   const [form, setForm] = useState({ ref: '', name: '', dose: '', unit: 'g' });
@@ -52,7 +53,10 @@ export default function CompositionBuilder({ rows, onChange, sessions }) {
         </select>
       </div>
       <div className="field">
-        <label>Nom de l'ingrédient</label>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
+          <label style={{ margin: 0 }}>Nom de l'ingrédient</label>
+          <MicButton value={form.name} onText={(text) => setForm((f) => ({ ...f, name: text }))} />
+        </div>
         <input
           className="input"
           style={{ borderRadius: 999, minHeight: 44 }}

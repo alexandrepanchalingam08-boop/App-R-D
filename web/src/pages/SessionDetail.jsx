@@ -9,6 +9,7 @@ import { KIND_META, UNIT_LABELS, PHOTO_LABEL_TEXT } from '../constants.js';
 import { api } from '../api.js';
 import CompositionBuilder from '../components/CompositionBuilder.jsx';
 import CompositionReadOnly from '../components/CompositionReadOnly.jsx';
+import MicButton from '../components/MicButton.jsx';
 
 export default function SessionDetail() {
   const { id } = useParams();
@@ -206,7 +207,10 @@ export default function SessionDetail() {
             </div>
             {!isFull && (
               <div className="field">
-                <label>Ingrédients (virgules)</label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
+                  <label style={{ margin: 0 }}>Ingrédients (virgules)</label>
+                  <MicButton value={nv.ing} onText={(text) => setNv({ ...nv, ing: text })} />
+                </div>
                 <textarea className="input" style={{ borderRadius: 'var(--radius-md)', minHeight: 70 }} value={nv.ing} onChange={(e) => setNv({ ...nv, ing: e.target.value })} />
               </div>
             )}

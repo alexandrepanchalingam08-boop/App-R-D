@@ -6,6 +6,16 @@ import { SESSION_KINDS, KIND_META } from '../constants.js';
 import { pillStyle } from '../lib/pill.js';
 import { api } from '../api.js';
 import CompositionBuilder from '../components/CompositionBuilder.jsx';
+import MicButton from '../components/MicButton.jsx';
+
+function FieldLabel({ children, value, onText }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
+      <label style={{ margin: 0 }}>{children}</label>
+      <MicButton value={value} onText={onText} />
+    </div>
+  );
+}
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -89,15 +99,15 @@ export default function Create() {
         </div>
         <div style={{ fontSize: 11.5, color: 'var(--color-neutral-600)', marginTop: -4 }}>{meta.hint}</div>
         <div className="field">
-          <label>{meta.nameLabel}</label>
+          <FieldLabel value={name} onText={setName}>{meta.nameLabel}</FieldLabel>
           <input className="input" style={{ borderRadius: 999, minHeight: 46, fontSize: 15 }} placeholder="ex. Crème dessert praliné" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="field">
-          <label>Projet R&amp;D</label>
+          <FieldLabel value={project} onText={setProject}>Projet R&amp;D</FieldLabel>
           <input className="input" style={{ borderRadius: 999, minHeight: 46 }} placeholder="ex. Dessert 2026" value={project} onChange={(e) => setProject(e.target.value)} />
         </div>
         <div className="field">
-          <label>Fournisseur ou enseigne</label>
+          <FieldLabel value={supplier} onText={setSupplier}>Fournisseur ou enseigne</FieldLabel>
           <input className="input" style={{ borderRadius: 999, minHeight: 46 }} placeholder="ex. Cacao Nord" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -112,7 +122,7 @@ export default function Create() {
         </div>
         {!isFull && (
           <div className="field">
-            <label>Ingrédients (séparés par une virgule)</label>
+            <FieldLabel value={ing} onText={setIng}>Ingrédients (séparés par une virgule)</FieldLabel>
             <textarea
               className="input"
               style={{ borderRadius: 'var(--radius-md)', minHeight: 78 }}
