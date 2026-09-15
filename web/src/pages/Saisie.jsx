@@ -5,8 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useSetPageMeta } from '../context/PageMetaContext.jsx';
 import { useCamera } from '../context/CameraContext.jsx';
 import { dateLabel } from '../lib/compute.js';
-import { GRILLE, HED, JAR_AXES, JAR_OPTIONS } from '../constants.js';
-import { pillStyle } from '../lib/pill.js';
+import { GRILLE, HED } from '../constants.js';
 import { api } from '../api.js';
 import CompositionReadOnly from '../components/CompositionReadOnly.jsx';
 import MicButton from '../components/MicButton.jsx';
@@ -32,7 +31,6 @@ export default function Saisie() {
   const [name, setName] = useState(user ? user.firstName + ' ' + user.lastName.charAt(0).toUpperCase() + '.' : '');
   const [note, setNote] = useState(7);
   const [profile, setProfile] = useState(blankProfile());
-  const [jar, setJar] = useState({ sucre: 'Juste bien', fermete: 'Juste bien' });
   const [comment, setComment] = useState('');
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -50,7 +48,7 @@ export default function Saisie() {
     setBusy(true);
     setErr(null);
     try {
-      await api.addGrade(session.id, version.id, { tasterName: name.trim(), hedonicRaw: note, profile, jar, comment });
+      await api.addGrade(session.id, version.id, { tasterName: name.trim(), hedonicRaw: note, profile, comment });
       await refresh();
       navigate('/session/' + session.id + '?v=' + version.id);
     } catch (e) {
@@ -126,9 +124,7 @@ export default function Saisie() {
           <div key={c.k} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
               <span style={{ fontSize: 13 }}>{c.label}</span>
-              <span style={{ fontSize: 11, color: 'var(--color-neutral-600)', textTransform: 'uppercase', letterSpacing: '.07em' }}>
-                {c.mod} · {profile[c.k]}
-              </span>
+              <span style={{ fontSize: 11, color: 'var(--color-neutral-600)' }}>{profile[c.k]}</span>
             </div>
             <input
               type="range"
@@ -139,22 +135,6 @@ export default function Saisie() {
               onChange={(e) => setProfile({ ...profile, [c.k]: Number(e.target.value) })}
               style={{ width: '100%', height: 30, accentColor: 'var(--color-accent)' }}
             />
-          </div>
-        ))}
-      </section>
-
-      <section className="card elev-sm" style={{ borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <h2 style={{ margin: 0, fontSize: 16 }}>Juste comme il faut</h2>
-        {JAR_AXES.map((j) => (
-          <div key={j.k} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 13 }}>{j.label}</span>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {JAR_OPTIONS.map((o) => (
-                <button key={o} type="button" onClick={() => setJar({ ...jar, [j.k]: o })} style={pillStyle(jar[j.k] === o)}>
-                  {o}
-                </button>
-              ))}
-            </div>
           </div>
         ))}
       </section>

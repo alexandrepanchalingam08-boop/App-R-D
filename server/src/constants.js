@@ -37,29 +37,19 @@ export const PHOTO_LABEL_TEXT = {
   ETIQUETTE: 'Étiquette'
 };
 
-// Sensory grid — 12 descriptors across 5 modalities, as defined by R&D.
+// Sensory grid — one slider per broad modality, as defined by R&D.
 export const GRILLE = [
-  { k: 'couleur', mod: 'Aspect', label: 'Intensité de couleur' },
-  { k: 'homog', mod: 'Aspect', label: 'Homogénéité / brillance' },
-  { k: 'odeur', mod: 'Odeur', label: 'Intensité olfactive' },
-  { k: 'fermete', mod: 'Texture', label: 'Fermeté' },
-  { k: 'fondant', mod: 'Texture', label: 'Fondant / onctuosité' },
-  { k: 'sucre', mod: 'Goût', label: 'Sucré' },
-  { k: 'sale', mod: 'Goût', label: 'Salé' },
-  { k: 'acide', mod: 'Goût', label: 'Acide' },
-  { k: 'amer', mod: 'Goût', label: 'Amer' },
-  { k: 'arome', mod: 'Arôme', label: 'Intensité aromatique' },
-  { k: 'persist', mod: 'Finale', label: 'Persistance' },
-  { k: 'arriere', mod: 'Finale', label: 'Arrière-goût indésirable' }
+  { k: 'visuel', mod: 'Visuel', label: 'Visuel' },
+  { k: 'odeur', mod: 'Odeur', label: 'Odeur' },
+  { k: 'texture', mod: 'Texture', label: 'Texture' },
+  { k: 'gout', mod: 'Goût', label: 'Goût' }
 ];
 
 export const AXES = [
-  { k: 'couleur', label: 'Couleur' },
+  { k: 'visuel', label: 'Visuel' },
   { k: 'odeur', label: 'Odeur' },
-  { k: 'fondant', label: 'Fondant' },
-  { k: 'sucre', label: 'Sucré' },
-  { k: 'arome', label: 'Arôme' },
-  { k: 'persist', label: 'Persist.' }
+  { k: 'texture', label: 'Texture' },
+  { k: 'gout', label: 'Goût' }
 ];
 
 export const HED = {
@@ -73,10 +63,3 @@ export const HED = {
   8: 'Plaît beaucoup',
   9: 'Plaît extrêmement'
 };
-
-export const JAR_AXES = [
-  { k: 'sucre', label: 'Sucré' },
-  { k: 'fermete', label: 'Fermeté' }
-];
-
-export const JAR_OPTIONS = ['Trop peu', 'Un peu trop peu', 'Juste bien', 'Un peu trop', 'Beaucoup trop'];

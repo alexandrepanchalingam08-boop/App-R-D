@@ -70,9 +70,10 @@ export function sessionStats(session) {
   const means = closed.map((v) => versionMeans(v));
   const best = means.reduce((acc, m, i) => (m > acc.m ? { m, v: closed[i].ver } : acc), { m: -1, v: '—' });
 
+  const angleStep = (2 * Math.PI) / AXES.length;
   const radar = (prof) =>
     AXES.map((ax, i) => {
-      const ang = -Math.PI / 2 + (i * Math.PI) / 3;
+      const ang = -Math.PI / 2 + i * angleStep;
       const r = (84 * (prof[ax.k] || 0)) / 10;
       return (110 + r * Math.cos(ang)).toFixed(1) + ',' + (110 + r * Math.sin(ang)).toFixed(1);
     }).join(' ');
@@ -110,7 +111,7 @@ export function sessionStats(session) {
       color: i === closed.length - 1 ? 'var(--color-accent)' : 'var(--color-accent-300)'
     })),
     axes: AXES.map((ax, i) => {
-      const ang = -Math.PI / 2 + (i * Math.PI) / 3;
+      const ang = -Math.PI / 2 + i * angleStep;
       const cx = Math.cos(ang);
       const cy = Math.sin(ang);
       return {

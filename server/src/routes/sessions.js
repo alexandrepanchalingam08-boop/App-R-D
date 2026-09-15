@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
 import { requireAuth, requireRD } from '../auth.js';
-import { SESSION_KINDS, UNITS, GRILLE, JAR_AXES } from '../constants.js';
+import { SESSION_KINDS, UNITS, GRILLE } from '../constants.js';
 import { serializeSession, serializeVersion, serializeGrade, sessionInclude } from '../serialize.js';
 
 const router = Router();
@@ -153,7 +153,7 @@ router.post('/:id/versions/:versionId/grades', async (req, res) => {
   const version = await prisma.version.findFirst({ where: { id: req.params.versionId, sessionId: req.params.id } });
   if (!version) return res.status(404).json({ error: 'Version introuvable.' });
 
-  const { tasterName, hedonicRaw, profile, jar, comment } = req.body || {};
+  const { tasterName, hedonicRaw, profile, comment } = req.body || {};
   if (!tasterName?.trim()) return res.status(400).json({ error: "Indiquez votre nom avant d'enregistrer." });
   const h = Number(hedonicRaw);
   if (!Number.isFinite(h) || h < 1 || h > 9) return res.status(400).json({ error: 'Note hédonique invalide.' });
@@ -162,10 +162,6 @@ router.post('/:id/versions/:versionId/grades', async (req, res) => {
   GRILLE.forEach((c) => {
     const v = Number(profile?.[c.k]);
     cleanProfile[c.k] = Number.isFinite(v) ? Math.max(0, Math.min(10, v)) : 5;
-  });
-  const cleanJar = {};
-  JAR_AXES.forEach((j) => {
-    cleanJar[j.k] = jar?.[j.k] || 'Juste bien';
   });
 
   const grade = await prisma.grade.create({
@@ -176,7 +172,7 @@ router.post('/:id/versions/:versionId/grades', async (req, res) => {
       hedonicRaw: h,
       note: (h * 10) / 9,
       profile: JSON.stringify(cleanProfile),
-      jar: JSON.stringify(cleanJar),
+      jar: '{}',
       comment: comment?.trim() || 'Grille saisie sans commentaire.'
     }
   });

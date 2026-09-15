@@ -11,9 +11,7 @@ const USERS = [
 ];
 const DEFAULT_PASSWORD = 'Degustation2026!';
 
-const GRILLE_KEYS = [
-  'couleur', 'homog', 'odeur', 'fermete', 'fondant', 'sucre', 'sale', 'acide', 'amer', 'arome', 'persist', 'arriere'
-];
+const GRILLE_KEYS = ['visuel', 'odeur', 'texture', 'gout'];
 
 const PANEL = ['Amélie R.', 'Karim B.', 'Sophie L.', 'Thomas V.', 'Inès M.', 'Julien P.'];
 
@@ -31,7 +29,7 @@ const QUOTES = [
 const SEED = [
   {
     id: 's1', kind: 'PRODUIT_COMPLET', name: 'Crème dessert chocolat', project: 'Dessert 2026', supplier: 'Cacao Nord',
-    prof: { couleur: 7, homog: 6.5, odeur: 6, fermete: 5, fondant: 6.5, sucre: 6.5, sale: 1.5, acide: 1.5, amer: 3, arome: 6, persist: 6, arriere: 3 },
+    prof: { visuel: 7, odeur: 6, texture: 6.5, gout: 7 },
     versions: [
       { ver: 'V1', code: 'CDC-221', date: '2026-02-11', base: 5.3, n: 4, closed: true, ing: ['cacao 22%', 'lait entier', 'amidon de maïs', 'sucre'] },
       { ver: 'V2', code: 'CDC-228', date: '2026-04-23', base: 6.7, n: 5, closed: true, ing: ['cacao 28%', 'lait entier', 'amidon de maïs', 'sucre'] },
@@ -41,7 +39,7 @@ const SEED = [
   },
   {
     id: 's2', kind: 'PRODUIT_COMPLET', name: 'Barre céréales noisette', project: 'Snack protéiné', supplier: 'Nutsco',
-    prof: { couleur: 5.5, homog: 5, odeur: 6, fermete: 7.5, fondant: 3.5, sucre: 5.5, sale: 2.5, acide: 1, amer: 4, arome: 6, persist: 5.5, arriere: 4 },
+    prof: { visuel: 5.5, odeur: 6, texture: 7, gout: 6 },
     versions: [
       { ver: 'R4', code: 'BCN-104', date: '2026-03-05', base: 6.1, n: 5, closed: true, ing: ['noisette 18%', 'sirop de glucose', 'protéine de pois', 'sucre de canne'] },
       { ver: 'R5', code: 'BCN-115', date: '2026-06-18', base: 7.1, n: 4, closed: true, ing: ['noisette 24%', 'sirop de riz', 'protéine de pois', 'fleur de sel'] }
@@ -49,7 +47,7 @@ const SEED = [
   },
   {
     id: 's3', kind: 'BENCHMARK', name: 'Yaourt brassé mangue', project: 'Fruits 2026', supplier: 'Fruival',
-    prof: { couleur: 7, homog: 6.5, odeur: 6.5, fermete: 3, fondant: 7.5, sucre: 6.5, sale: 0.5, acide: 5, amer: 1, arome: 7, persist: 5, arriere: 2 },
+    prof: { visuel: 7, odeur: 6.5, texture: 7, gout: 6.5 },
     versions: [
       { ver: 'V1', code: 'YBM-011', date: '2026-05-14', base: 6.4, n: 5, closed: true, ing: ['purée de mangue 14%', 'lait fermenté', 'sucre', 'amidon'] },
       { ver: 'V2', code: 'YBM-020', date: '2026-08-27', base: 7.4, n: 5, closed: true, ing: ['purée de mangue 20%', 'lait fermenté', 'sucre de canne', 'amidon'] },
@@ -58,7 +56,7 @@ const SEED = [
   },
   {
     id: 's4', kind: 'INGREDIENT', name: 'Beurre de baratte 82%', project: 'Goûter', supplier: 'Laiterie Ouest', buyer: 'Inès Maréchal', fr: false,
-    prof: { couleur: 6, homog: 7, odeur: 7.5, fermete: 7, fondant: 4.5, sucre: 6, sale: 3, acide: 0.5, amer: 1.5, arome: 7.5, persist: 6.5, arriere: 1.5 },
+    prof: { visuel: 6, odeur: 7.5, texture: 5, gout: 6.5 },
     versions: [
       { ver: 'V1', code: 'BEU-082', date: '2026-06-02', base: 7.9, n: 5, closed: true, ing: ['beurre 26%', 'farine T55', 'sucre', 'fleur de sel'] },
       { ver: 'V2', code: 'BEU-090', date: '2026-09-08', base: 7.7, n: 0, closed: false, ing: ['beurre 28%', 'farine T55', 'sucre', 'fleur de sel'] }
@@ -158,7 +156,7 @@ export async function runSeed() {
             hedonicRaw: Math.round((note10 * 9) / 10),
             note: note10,
             profile: JSON.stringify(profile),
-            jar: JSON.stringify({ sucre: 'Juste bien', fermete: 'Juste bien' }),
+            jar: '{}',
             comment: QUOTES[(si + vi + i) % QUOTES.length]
           }
         });

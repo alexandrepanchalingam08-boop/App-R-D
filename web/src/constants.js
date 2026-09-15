@@ -34,27 +34,17 @@ export const PHOTO_LABELS = ['ASPECT', 'PACKAGING', 'ETIQUETTE'];
 export const PHOTO_LABEL_TEXT = { ASPECT: 'Aspect du produit', PACKAGING: 'Packaging', ETIQUETTE: 'Étiquette' };
 
 export const GRILLE = [
-  { k: 'couleur', mod: 'Aspect', label: 'Intensité de couleur' },
-  { k: 'homog', mod: 'Aspect', label: 'Homogénéité / brillance' },
-  { k: 'odeur', mod: 'Odeur', label: 'Intensité olfactive' },
-  { k: 'fermete', mod: 'Texture', label: 'Fermeté' },
-  { k: 'fondant', mod: 'Texture', label: 'Fondant / onctuosité' },
-  { k: 'sucre', mod: 'Goût', label: 'Sucré' },
-  { k: 'sale', mod: 'Goût', label: 'Salé' },
-  { k: 'acide', mod: 'Goût', label: 'Acide' },
-  { k: 'amer', mod: 'Goût', label: 'Amer' },
-  { k: 'arome', mod: 'Arôme', label: 'Intensité aromatique' },
-  { k: 'persist', mod: 'Finale', label: 'Persistance' },
-  { k: 'arriere', mod: 'Finale', label: 'Arrière-goût indésirable' }
+  { k: 'visuel', mod: 'Visuel', label: 'Visuel' },
+  { k: 'odeur', mod: 'Odeur', label: 'Odeur' },
+  { k: 'texture', mod: 'Texture', label: 'Texture' },
+  { k: 'gout', mod: 'Goût', label: 'Goût' }
 ];
 
 export const AXES = [
-  { k: 'couleur', label: 'Couleur' },
+  { k: 'visuel', label: 'Visuel' },
   { k: 'odeur', label: 'Odeur' },
-  { k: 'fondant', label: 'Fondant' },
-  { k: 'sucre', label: 'Sucré' },
-  { k: 'arome', label: 'Arôme' },
-  { k: 'persist', label: 'Persist.' }
+  { k: 'texture', label: 'Texture' },
+  { k: 'gout', label: 'Goût' }
 ];
 
 export const HED = {
@@ -69,14 +59,6 @@ export const HED = {
   9: 'Plaît extrêmement'
 };
 
-export const JAR_AXES = [
-  { k: 'sucre', label: 'Sucré' },
-  { k: 'fermete', label: 'Fermeté' }
-];
-
-export const JAR_OPTIONS = ['Trop peu', 'Un peu trop peu', 'Juste bien', 'Un peu trop', 'Beaucoup trop'];
-
-// Matches the prototype's default DC props (noteScale / showJar were
-// design-preview toggles, not user-facing settings — fixed here).
+// Matches the prototype's default DC props (noteScale was a design-preview
+// toggle, not a user-facing setting — fixed here).
 export const NOTE_SCALE = 'sur 10';
-export const SHOW_JAR = true;
