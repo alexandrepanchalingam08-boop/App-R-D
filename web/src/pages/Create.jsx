@@ -38,6 +38,7 @@ export default function Create() {
   const [busy, setBusy] = useState(false);
 
   const isFull = kind === 'PRODUIT_COMPLET';
+  const isBenchmark = kind === 'BENCHMARK';
   const meta = KIND_META[kind];
 
   async function submit() {
@@ -112,16 +113,18 @@ export default function Create() {
           <FieldLabel value={supplier} onText={setSupplier}>Fournisseur ou enseigne</FieldLabel>
           <input className="input" style={{ borderRadius: 999, minHeight: 46 }} placeholder="ex. Cacao Nord" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <div className="field">
-            <label>Première version</label>
-            <input className="input" style={{ borderRadius: 999, minHeight: 46 }} placeholder="V1" value={ver} onChange={(e) => setVer(e.target.value)} />
+        {!isBenchmark && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div className="field">
+              <label>Première version</label>
+              <input className="input" style={{ borderRadius: 999, minHeight: 46 }} placeholder="V1" value={ver} onChange={(e) => setVer(e.target.value)} />
+            </div>
+            <div className="field">
+              <label>Code produit</label>
+              <input className="input" style={{ borderRadius: 999, minHeight: 46 }} placeholder="ex. CDC-284" value={code} onChange={(e) => setCode(e.target.value)} />
+            </div>
           </div>
-          <div className="field">
-            <label>Code produit</label>
-            <input className="input" style={{ borderRadius: 999, minHeight: 46 }} placeholder="ex. CDC-284" value={code} onChange={(e) => setCode(e.target.value)} />
-          </div>
-        </div>
+        )}
         {!isFull && (
           <div className="field">
             <FieldLabel value={ing} onText={setIng}>Ingrédients (séparés par une virgule)</FieldLabel>

@@ -57,6 +57,7 @@ export default function SessionDetail() {
 
   const stats = sessionStats(session);
   const isFull = session.kind === 'PRODUIT_COMPLET';
+  const isBenchmark = session.kind === 'BENCHMARK';
   const buyers = users.filter((u) => u.pole === 'ACHATS');
 
   function selectVersion(vid) {
@@ -172,76 +173,80 @@ export default function SessionDetail() {
             {KIND_META[session.kind].label}
           </span>
         </div>
-        <div className="field">
-          <label>Version dégustée</label>
-          <select className="input" style={{ borderRadius: 999, minHeight: 46, fontSize: 15 }} value={currentVersion.id} onChange={(e) => selectVersion(e.target.value)}>
-            {session.versions.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.ver} — {dateLabel(v.date)}
-                {v.code ? ' · ' + v.code : ''}
-                {v.closed ? ' · dégusté' : ' · à tester'}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button type="button" className="btn btn-secondary" style={{ borderRadius: 999, minHeight: 42, flex: 1 }} onClick={toggleNew}>
-            {newOpen ? "Annuler l'ajout" : '+ Nouvelle version'}
-          </button>
-        </div>
-        {newOpen && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12, borderRadius: 'var(--radius-md)', background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-300)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div className="field">
-                <label>Version</label>
-                <input className="input" style={{ borderRadius: 999, minHeight: 44 }} placeholder="V4" value={nv.ver} onChange={(e) => setNv({ ...nv, ver: e.target.value })} />
-              </div>
-              <div className="field">
-                <label>Code produit</label>
-                <input className="input" style={{ borderRadius: 999, minHeight: 44 }} placeholder="CDC-291" value={nv.code} onChange={(e) => setNv({ ...nv, code: e.target.value })} />
-              </div>
-            </div>
+        {!isBenchmark && (
+          <>
             <div className="field">
-              <label>Date</label>
-              <input className="input" type="date" style={{ borderRadius: 999, minHeight: 44 }} value={nv.date} onChange={(e) => setNv({ ...nv, date: e.target.value })} />
+              <label>Version dégustée</label>
+              <select className="input" style={{ borderRadius: 999, minHeight: 46, fontSize: 15 }} value={currentVersion.id} onChange={(e) => selectVersion(e.target.value)}>
+                {session.versions.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.ver} — {dateLabel(v.date)}
+                    {v.code ? ' · ' + v.code : ''}
+                    {v.closed ? ' · dégusté' : ' · à tester'}
+                  </option>
+                ))}
+              </select>
             </div>
-            {!isFull && (
-              <div className="field">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
-                  <label style={{ margin: 0 }}>Ingrédients (virgules)</label>
-                  <MicButton value={nv.ing} onText={(text) => setNv({ ...nv, ing: text })} />
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button type="button" className="btn btn-secondary" style={{ borderRadius: 999, minHeight: 42, flex: 1 }} onClick={toggleNew}>
+                {newOpen ? "Annuler l'ajout" : '+ Nouvelle version'}
+              </button>
+            </div>
+            {newOpen && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12, borderRadius: 'var(--radius-md)', background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-300)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div className="field">
+                    <label>Version</label>
+                    <input className="input" style={{ borderRadius: 999, minHeight: 44 }} placeholder="V4" value={nv.ver} onChange={(e) => setNv({ ...nv, ver: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label>Code produit</label>
+                    <input className="input" style={{ borderRadius: 999, minHeight: 44 }} placeholder="CDC-291" value={nv.code} onChange={(e) => setNv({ ...nv, code: e.target.value })} />
+                  </div>
                 </div>
-                <textarea className="input" style={{ borderRadius: 'var(--radius-md)', minHeight: 70 }} value={nv.ing} onChange={(e) => setNv({ ...nv, ing: e.target.value })} />
+                <div className="field">
+                  <label>Date</label>
+                  <input className="input" type="date" style={{ borderRadius: 999, minHeight: 44 }} value={nv.date} onChange={(e) => setNv({ ...nv, date: e.target.value })} />
+                </div>
+                {!isFull && (
+                  <div className="field">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
+                      <label style={{ margin: 0 }}>Ingrédients (virgules)</label>
+                      <MicButton value={nv.ing} onText={(text) => setNv({ ...nv, ing: text })} />
+                    </div>
+                    <textarea className="input" style={{ borderRadius: 'var(--radius-md)', minHeight: 70 }} value={nv.ing} onChange={(e) => setNv({ ...nv, ing: e.target.value })} />
+                  </div>
+                )}
+                {isFull && <CompositionBuilder rows={nvComp} onChange={setNvComp} sessions={sessions.filter((s) => s.id !== session.id)} />}
+                <div className="field">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
+                    <label style={{ margin: 0 }}>Mise en œuvre (temps de cuisson, équipement…)</label>
+                    <MicButton value={nv.procede} onText={(text) => setNv({ ...nv, procede: text })} />
+                  </div>
+                  <textarea
+                    className="input"
+                    style={{ borderRadius: 'var(--radius-md)', minHeight: 70 }}
+                    placeholder="ex. Cuisson 12 min à 180°C, mélangeur planétaire vitesse 2"
+                    value={nv.procede}
+                    onChange={(e) => setNv({ ...nv, procede: e.target.value })}
+                  />
+                </div>
+                {err && (
+                  <div style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-accent-200)', color: 'var(--color-accent-800)', padding: '10px 13px', fontSize: 12.5 }}>{err}</div>
+                )}
+                <button type="button" className="btn btn-primary" disabled={busy} style={{ borderRadius: 999, minHeight: 44 }} onClick={addVersion}>
+                  Ajouter la version
+                </button>
               </div>
             )}
-            {isFull && <CompositionBuilder rows={nvComp} onChange={setNvComp} sessions={sessions.filter((s) => s.id !== session.id)} />}
-            <div className="field">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 5 }}>
-                <label style={{ margin: 0 }}>Mise en œuvre (temps de cuisson, équipement…)</label>
-                <MicButton value={nv.procede} onText={(text) => setNv({ ...nv, procede: text })} />
-              </div>
-              <textarea
-                className="input"
-                style={{ borderRadius: 'var(--radius-md)', minHeight: 70 }}
-                placeholder="ex. Cuisson 12 min à 180°C, mélangeur planétaire vitesse 2"
-                value={nv.procede}
-                onChange={(e) => setNv({ ...nv, procede: e.target.value })}
-              />
-            </div>
-            {err && (
-              <div style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-accent-200)', color: 'var(--color-accent-800)', padding: '10px 13px', fontSize: 12.5 }}>{err}</div>
-            )}
-            <button type="button" className="btn btn-primary" disabled={busy} style={{ borderRadius: 999, minHeight: 44 }} onClick={addVersion}>
-              Ajouter la version
-            </button>
-          </div>
+          </>
         )}
       </section>
 
       {/* Version card */}
       <section className="card elev-sm" style={{ borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', gap: 11 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <h2 style={{ margin: 0, fontSize: 16 }}>Version {currentVersion.ver}</h2>
+          {!isBenchmark && <h2 style={{ margin: 0, fontSize: 16 }}>Version {currentVersion.ver}</h2>}
           <span className="tag tag-accent">{currentVersion.closed ? 'dégusté' : 'à tester'}</span>
         </div>
         <div style={{ fontSize: 12, color: 'var(--color-neutral-700)' }}>
@@ -290,21 +295,25 @@ export default function SessionDetail() {
             </button>
           </div>
         )}
-        <button type="button" className="btn btn-ghost" style={{ borderRadius: 999, minHeight: 42 }} onClick={() => setConfirmVer(true)}>
-          Supprimer cette version
-        </button>
-        {confirmVer && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 9, padding: 12, borderRadius: 'var(--radius-md)', background: 'var(--color-accent-200)' }}>
-            <div style={{ fontSize: 12.5, color: 'var(--color-accent-800)' }}>Supprimer Version {currentVersion.ver} et ses grilles ? Action définitive.</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" className="btn btn-primary" disabled={busy} style={{ borderRadius: 999, minHeight: 42, flex: 1 }} onClick={deleteVersion}>
-                Supprimer
-              </button>
-              <button type="button" className="btn btn-secondary" style={{ borderRadius: 999, minHeight: 42, flex: 1 }} onClick={() => setConfirmVer(false)}>
-                Annuler
-              </button>
-            </div>
-          </div>
+        {!isBenchmark && (
+          <>
+            <button type="button" className="btn btn-ghost" style={{ borderRadius: 999, minHeight: 42 }} onClick={() => setConfirmVer(true)}>
+              Supprimer cette version
+            </button>
+            {confirmVer && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9, padding: 12, borderRadius: 'var(--radius-md)', background: 'var(--color-accent-200)' }}>
+                <div style={{ fontSize: 12.5, color: 'var(--color-accent-800)' }}>Supprimer Version {currentVersion.ver} et ses grilles ? Action définitive.</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" className="btn btn-primary" disabled={busy} style={{ borderRadius: 999, minHeight: 42, flex: 1 }} onClick={deleteVersion}>
+                    Supprimer
+                  </button>
+                  <button type="button" className="btn btn-secondary" style={{ borderRadius: 999, minHeight: 42, flex: 1 }} onClick={() => setConfirmVer(false)}>
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </section>
 
@@ -394,6 +403,58 @@ export default function SessionDetail() {
               </button>
             </div>
           )}
+        </section>
+      )}
+
+      {/* Prix de vente card (Benchmark) */}
+      {isBenchmark && (
+        <section className="card elev-sm" style={{ borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 16 }}>Prix de vente</h2>
+            <p style={{ margin: '5px 0 0', fontSize: 12, color: 'var(--color-neutral-700)' }}>Prix constaté sur le marché pour ce produit de référence.</p>
+          </div>
+
+          {session.price && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, padding: 12, borderRadius: 'var(--radius-md)', background: 'var(--color-accent-2-100)' }}>
+              <div style={{ fontFamily: 'var(--font-heading)', fontSize: 20, color: 'var(--color-accent-2-800)' }}>
+                {session.price.amount} € pour {session.price.dose} {UNIT_LABELS[session.price.unit]}
+              </div>
+              <div style={{ fontSize: 11.5, color: 'var(--color-neutral-700)' }}>Relevé le {dateLabel(session.price.date)}</div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12, borderRadius: 'var(--radius-md)', background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-300)' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+              <div className="field" style={{ flex: 1 }}>
+                <label>Prix (€)</label>
+                <input className="input" style={{ borderRadius: 999, minHeight: 44 }} placeholder="8,40" value={priceForm.amount} onChange={(e) => setPriceForm({ ...priceForm, amount: e.target.value })} />
+              </div>
+              <div className="field" style={{ flex: 1 }}>
+                <label>Dosage</label>
+                <input className="input" style={{ borderRadius: 999, minHeight: 44 }} placeholder="1" value={priceForm.dose} onChange={(e) => setPriceForm({ ...priceForm, dose: e.target.value })} />
+              </div>
+              <div className="field" style={{ flex: '0 0 96px' }}>
+                <label>Unité</label>
+                <select className="input" style={{ borderRadius: 999, minHeight: 44 }} value={priceForm.unit} onChange={(e) => setPriceForm({ ...priceForm, unit: e.target.value })}>
+                  {Object.entries(UNIT_LABELS).map(([v, l]) => (
+                    <option key={v} value={v}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="field">
+              <label>Date du relevé</label>
+              <input className="input" type="date" style={{ borderRadius: 999, minHeight: 44 }} value={priceForm.date} onChange={(e) => setPriceForm({ ...priceForm, date: e.target.value })} />
+            </div>
+            {err && (
+              <div style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-accent-200)', color: 'var(--color-accent-800)', padding: '10px 13px', fontSize: 12.5 }}>{err}</div>
+            )}
+            <button type="button" className="btn btn-primary" disabled={busy} style={{ borderRadius: 999, minHeight: 46 }} onClick={savePrice}>
+              Enregistrer le prix de vente
+            </button>
+          </div>
         </section>
       )}
 

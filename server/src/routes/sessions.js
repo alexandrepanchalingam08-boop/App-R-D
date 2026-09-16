@@ -221,10 +221,14 @@ router.patch('/:id/comite', requireRD, async (req, res) => {
 router.put('/:id/price', async (req, res) => {
   const session = await prisma.tastingSession.findUnique({ where: { id: req.params.id } });
   if (!session) return res.status(404).json({ error: 'Session introuvable.' });
-  if (session.kind !== 'INGREDIENT') return res.status(400).json({ error: 'Réservé aux fiches Ingrédient.' });
-  if (!session.frPassed) return res.status(403).json({ error: "Le passage en FR n'a pas encore été fait." });
-  const isOwner = session.buyerId === req.user.id;
-  if (!isOwner && !req.user.isAdmin) return res.status(403).json({ error: "Réservé à l'acheteur rattaché." });
+  if (session.kind === 'PRODUIT_COMPLET') return res.status(400).json({ error: 'Réservé aux fiches Ingrédient ou Benchmark.' });
+
+  if (session.kind === 'INGREDIENT') {
+    if (!session.frPassed) return res.status(403).json({ error: "Le passage en FR n'a pas encore été fait." });
+    const isOwner = session.buyerId === req.user.id;
+    if (!isOwner && !req.user.isAdmin) return res.status(403).json({ error: "Réservé à l'acheteur rattaché." });
+  }
+  // BENCHMARK : prix de vente constaté sur le marché, renseignable directement, sans passage en FR ni acheteur rattaché.
 
   const { amount, dose, unit, date } = req.body || {};
   if (!amount?.toString().trim() || !dose?.toString().trim()) {
