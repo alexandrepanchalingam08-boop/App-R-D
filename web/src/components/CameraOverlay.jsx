@@ -3,15 +3,17 @@ import { useCamera } from '../context/CameraContext.jsx';
 import { PHOTO_LABELS, PHOTO_LABEL_TEXT } from '../constants.js';
 import { api } from '../api.js';
 import { useData } from '../context/DataContext.jsx';
+import { compressImage } from '../lib/image.js';
 
 export default function CameraOverlay() {
   const { request, closeCamera } = useCamera();
-  const { refresh } = useData();
+  const { mergeSession } = useData();
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [label, setLabel] = useState(request?.targetLabel || 'ASPECT');
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [step, setStep] = useState('');
 
   useEffect(() => {
     if (!request) return;
@@ -42,16 +44,18 @@ export default function CameraOverlay() {
 
   async function uploadBlob(blob) {
     setBusy(true);
+    setStep('Envoi…');
     try {
       const file = new File([blob], 'photo.jpg', { type: blob.type || 'image/jpeg' });
       const res = await api.uploadPhoto(request.sessionId, file, label);
-      await refresh();
+      mergeSession(res.session);
       request.onDone && request.onDone(res.photo);
       closeCamera();
     } catch (e) {
       setErr(e.message);
     } finally {
       setBusy(false);
+      setStep('');
     }
   }
 
@@ -61,17 +65,29 @@ export default function CameraOverlay() {
       setErr('Rien à capturer : pas de flux vidéo. Passez par « Galerie ».');
       return;
     }
+    const maxDim = 1600;
+    const scale = Math.min(1, maxDim / Math.max(v.videoWidth, v.videoHeight));
     const c = document.createElement('canvas');
-    c.width = v.videoWidth;
-    c.height = v.videoHeight;
-    c.getContext('2d').drawImage(v, 0, 0);
-    c.toBlob((blob) => blob && uploadBlob(blob), 'image/jpeg', 0.85);
+    c.width = Math.round(v.videoWidth * scale);
+    c.height = Math.round(v.videoHeight * scale);
+    c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+    c.toBlob((blob) => blob && uploadBlob(blob), 'image/jpeg', 0.82);
   }
 
-  function onPick(e) {
+  async function onPick(e) {
     const f = e.target.files && e.target.files[0];
-    if (f) uploadBlob(f);
     e.target.value = '';
+    if (!f) return;
+    setBusy(true);
+    setStep('Compression…');
+    try {
+      const compressed = await compressImage(f);
+      await uploadBlob(compressed);
+    } catch (err) {
+      setErr(err.message);
+      setBusy(false);
+      setStep('');
+    }
   }
 
   return (
@@ -228,7 +244,7 @@ export default function CameraOverlay() {
             }}
           />
           <div style={{ width: 96, fontSize: 11, opacity: 0.75, lineHeight: 1.4 }}>
-            {busy ? 'Envoi…' : err ? 'Aperçu indisponible' : 'Cadrez l’échantillon dans le repère'}
+            {busy ? step || 'Envoi…' : err ? 'Aperçu indisponible' : 'Cadrez l’échantillon dans le repère'}
           </div>
         </div>
       </div>
