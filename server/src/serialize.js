@@ -7,6 +7,9 @@ export function serializeSession(s) {
     supplier: s.supplier,
     frPassed: s.frPassed,
     comiteDate: s.comiteDate,
+    prixVenteResto: s.prixVenteResto || '',
+    prixVenteUber: s.prixVenteUber || '',
+    prixVenteUnite: s.prixVenteUnite || '',
     buyerId: s.buyerId,
     buyer: s.buyer
       ? { id: s.buyer.id, firstName: s.buyer.firstName, lastName: s.buyer.lastName, pole: s.buyer.pole }

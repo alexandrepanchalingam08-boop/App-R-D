@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext.jsx';
 import { useSetPageMeta } from '../context/PageMetaContext.jsx';
-import { SESSION_KINDS, KIND_META } from '../constants.js';
+import { SESSION_KINDS, KIND_META, PRIX_VENTE_UNITES, PRIX_VENTE_UNITE_LABELS } from '../constants.js';
 import { pillStyle } from '../lib/pill.js';
 import { api } from '../api.js';
 import CompositionBuilder from '../components/CompositionBuilder.jsx';
@@ -33,6 +33,9 @@ export default function Create() {
   const [code, setCode] = useState('');
   const [ing, setIng] = useState('');
   const [procede, setProcede] = useState('');
+  const [prixVenteResto, setPrixVenteResto] = useState('');
+  const [prixVenteUber, setPrixVenteUber] = useState('');
+  const [prixVenteUnite, setPrixVenteUnite] = useState('MENU');
   const [comp, setComp] = useState([]);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -67,7 +70,10 @@ export default function Create() {
         code,
         ingredients: ing,
         composition: comp,
-        procede
+        procede,
+        prixVenteResto,
+        prixVenteUber,
+        prixVenteUnite
       });
       await refresh();
       navigate('/session/' + res.session.id);
@@ -138,6 +144,28 @@ export default function Create() {
           </div>
         )}
         {isFull && <CompositionBuilder rows={comp} onChange={setComp} sessions={sessions} />}
+        {isBenchmark && (
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+            <div className="field" style={{ flex: 1 }}>
+              <label>Prix de vente resto (€)</label>
+              <input className="input" style={{ borderRadius: 999, minHeight: 46 }} placeholder="8,90" value={prixVenteResto} onChange={(e) => setPrixVenteResto(e.target.value)} />
+            </div>
+            <div className="field" style={{ flex: 1 }}>
+              <label>Prix de vente Uber (€)</label>
+              <input className="input" style={{ borderRadius: 999, minHeight: 46 }} placeholder="10,90" value={prixVenteUber} onChange={(e) => setPrixVenteUber(e.target.value)} />
+            </div>
+            <div className="field" style={{ flex: '0 0 128px' }}>
+              <label>Unité</label>
+              <select className="input" style={{ borderRadius: 999, minHeight: 46 }} value={prixVenteUnite} onChange={(e) => setPrixVenteUnite(e.target.value)}>
+                {PRIX_VENTE_UNITES.map((u) => (
+                  <option key={u} value={u}>
+                    {PRIX_VENTE_UNITE_LABELS[u]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
         <div className="field">
           <FieldLabel value={procede} onText={setProcede}>Mise en œuvre (temps de cuisson, équipement…)</FieldLabel>
           <textarea

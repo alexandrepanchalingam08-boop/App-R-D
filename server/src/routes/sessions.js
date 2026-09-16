@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../db.js';
 import { requireAuth, requireRD } from '../auth.js';
-import { SESSION_KINDS, UNITS, GRILLE } from '../constants.js';
+import { SESSION_KINDS, UNITS, GRILLE, PRIX_VENTE_UNITES } from '../constants.js';
 import { serializeSession, serializeVersion, serializeGrade, sessionInclude } from '../serialize.js';
 
 const router = Router();
@@ -46,7 +46,7 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { kind, name, project, supplier, date, ver, code, ingredients, composition, procede } = req.body || {};
+  const { kind, name, project, supplier, date, ver, code, ingredients, composition, procede, prixVenteResto, prixVenteUber, prixVenteUnite } = req.body || {};
   if (!SESSION_KINDS.includes(kind)) return res.status(400).json({ error: 'Nature de fiche invalide.' });
   if (!name?.trim()) return res.status(400).json({ error: 'Le nom est obligatoire.' });
 
@@ -70,6 +70,9 @@ router.post('/', async (req, res) => {
       name: name.trim(),
       project: project?.trim() || 'Projet non renseigné',
       supplier: supplier?.trim() || 'Fournisseur non renseigné',
+      prixVenteResto: kind === 'BENCHMARK' ? prixVenteResto?.trim() || null : null,
+      prixVenteUber: kind === 'BENCHMARK' ? prixVenteUber?.trim() || null : null,
+      prixVenteUnite: kind === 'BENCHMARK' && PRIX_VENTE_UNITES.includes(prixVenteUnite) ? prixVenteUnite : null,
       createdById: req.user.id,
       versions: {
         create: [
@@ -221,14 +224,10 @@ router.patch('/:id/comite', requireRD, async (req, res) => {
 router.put('/:id/price', async (req, res) => {
   const session = await prisma.tastingSession.findUnique({ where: { id: req.params.id } });
   if (!session) return res.status(404).json({ error: 'Session introuvable.' });
-  if (session.kind === 'PRODUIT_COMPLET') return res.status(400).json({ error: 'Réservé aux fiches Ingrédient ou Benchmark.' });
-
-  if (session.kind === 'INGREDIENT') {
-    if (!session.frPassed) return res.status(403).json({ error: "Le passage en FR n'a pas encore été fait." });
-    const isOwner = session.buyerId === req.user.id;
-    if (!isOwner && !req.user.isAdmin) return res.status(403).json({ error: "Réservé à l'acheteur rattaché." });
-  }
-  // BENCHMARK : prix de vente constaté sur le marché, renseignable directement, sans passage en FR ni acheteur rattaché.
+  if (session.kind !== 'INGREDIENT') return res.status(400).json({ error: 'Réservé aux fiches Ingrédient.' });
+  if (!session.frPassed) return res.status(403).json({ error: "Le passage en FR n'a pas encore été fait." });
+  const isOwner = session.buyerId === req.user.id;
+  if (!isOwner && !req.user.isAdmin) return res.status(403).json({ error: "Réservé à l'acheteur rattaché." });
 
   const { amount, dose, unit, date } = req.body || {};
   if (!amount?.toString().trim() || !dose?.toString().trim()) {

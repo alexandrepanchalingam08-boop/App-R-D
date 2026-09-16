@@ -29,6 +29,10 @@ export const KIND_META = {
 
 export const UNITS = ['g', 'kg', 'ml', 'l', 'piece'];
 
+// Benchmark : comment le prix de vente relevé a été observé.
+export const PRIX_VENTE_UNITES = ['MENU', 'UNITE'];
+export const PRIX_VENTE_UNITE_LABELS = { MENU: 'En menu', UNITE: 'À l’unité' };
+
 export const PHOTO_LABELS = ['ASPECT', 'PACKAGING', 'ETIQUETTE'];
 
 export const PHOTO_LABEL_TEXT = {

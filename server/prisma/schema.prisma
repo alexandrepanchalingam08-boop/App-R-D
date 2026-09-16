@@ -54,6 +54,12 @@ model TastingSession {
   comiteDate String?
   createdAt  DateTime @default(now())
 
+  // Benchmark uniquement : prix de vente constatés à la création de la fiche.
+  // prixVenteUnite : MENU | UNITE (voir src/constants.js)
+  prixVenteResto String?
+  prixVenteUber  String?
+  prixVenteUnite String?
+
   createdById String?
   createdBy   User?   @relation("SessionCreatedBy", fields: [createdById], references: [id])
 

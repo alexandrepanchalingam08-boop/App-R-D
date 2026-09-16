@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useSetPageMeta } from '../context/PageMetaContext.jsx';
 import { useCamera } from '../context/CameraContext.jsx';
 import { activeVersion, dateLabel, fmt, mean, sessionStats } from '../lib/compute.js';
-import { KIND_META, UNIT_LABELS, PHOTO_LABEL_TEXT } from '../constants.js';
+import { KIND_META, UNIT_LABELS, PHOTO_LABEL_TEXT, PRIX_VENTE_UNITE_LABELS } from '../constants.js';
 import { api } from '../api.js';
 import CompositionBuilder from '../components/CompositionBuilder.jsx';
 import CompositionReadOnly from '../components/CompositionReadOnly.jsx';
@@ -173,6 +173,27 @@ export default function SessionDetail() {
             {KIND_META[session.kind].label}
           </span>
         </div>
+        {isBenchmark && (session.prixVenteResto || session.prixVenteUber) && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {session.prixVenteResto && (
+              <div style={{ flex: '1 1 120px', borderRadius: 'var(--radius-md)', background: 'var(--color-neutral-100)', padding: '9px 11px' }}>
+                <div style={{ fontSize: 11, color: 'var(--color-neutral-600)' }}>Prix de vente resto</div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 17 }}>{session.prixVenteResto} €</div>
+              </div>
+            )}
+            {session.prixVenteUber && (
+              <div style={{ flex: '1 1 120px', borderRadius: 'var(--radius-md)', background: 'var(--color-neutral-100)', padding: '9px 11px' }}>
+                <div style={{ fontSize: 11, color: 'var(--color-neutral-600)' }}>Prix de vente Uber</div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 17 }}>{session.prixVenteUber} €</div>
+              </div>
+            )}
+            {session.prixVenteUnite && (
+              <div style={{ flex: 'none', alignSelf: 'center' }}>
+                <span className="tag tag-outline">{PRIX_VENTE_UNITE_LABELS[session.prixVenteUnite]}</span>
+              </div>
+            )}
+          </div>
+        )}
         {!isBenchmark && (
           <>
             <div className="field">
@@ -406,57 +427,6 @@ export default function SessionDetail() {
         </section>
       )}
 
-      {/* Prix de vente card (Benchmark) */}
-      {isBenchmark && (
-        <section className="card elev-sm" style={{ borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: 16 }}>Prix de vente</h2>
-            <p style={{ margin: '5px 0 0', fontSize: 12, color: 'var(--color-neutral-700)' }}>Prix constaté sur le marché pour ce produit de référence.</p>
-          </div>
-
-          {session.price && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, padding: 12, borderRadius: 'var(--radius-md)', background: 'var(--color-accent-2-100)' }}>
-              <div style={{ fontFamily: 'var(--font-heading)', fontSize: 20, color: 'var(--color-accent-2-800)' }}>
-                {session.price.amount} € pour {session.price.dose} {UNIT_LABELS[session.price.unit]}
-              </div>
-              <div style={{ fontSize: 11.5, color: 'var(--color-neutral-700)' }}>Relevé le {dateLabel(session.price.date)}</div>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12, borderRadius: 'var(--radius-md)', background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-300)' }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-              <div className="field" style={{ flex: 1 }}>
-                <label>Prix (€)</label>
-                <input className="input" style={{ borderRadius: 999, minHeight: 44 }} placeholder="8,40" value={priceForm.amount} onChange={(e) => setPriceForm({ ...priceForm, amount: e.target.value })} />
-              </div>
-              <div className="field" style={{ flex: 1 }}>
-                <label>Dosage</label>
-                <input className="input" style={{ borderRadius: 999, minHeight: 44 }} placeholder="1" value={priceForm.dose} onChange={(e) => setPriceForm({ ...priceForm, dose: e.target.value })} />
-              </div>
-              <div className="field" style={{ flex: '0 0 96px' }}>
-                <label>Unité</label>
-                <select className="input" style={{ borderRadius: 999, minHeight: 44 }} value={priceForm.unit} onChange={(e) => setPriceForm({ ...priceForm, unit: e.target.value })}>
-                  {Object.entries(UNIT_LABELS).map(([v, l]) => (
-                    <option key={v} value={v}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="field">
-              <label>Date du relevé</label>
-              <input className="input" type="date" style={{ borderRadius: 999, minHeight: 44 }} value={priceForm.date} onChange={(e) => setPriceForm({ ...priceForm, date: e.target.value })} />
-            </div>
-            {err && (
-              <div style={{ borderRadius: 'var(--radius-md)', background: 'var(--color-accent-200)', color: 'var(--color-accent-800)', padding: '10px 13px', fontSize: 12.5 }}>{err}</div>
-            )}
-            <button type="button" className="btn btn-primary" disabled={busy} style={{ borderRadius: 999, minHeight: 46 }} onClick={savePrice}>
-              Enregistrer le prix de vente
-            </button>
-          </div>
-        </section>
-      )}
 
       {isFull && currentVersion.composition.length > 0 && <CompositionReadOnly rows={currentVersion.composition} />}
 
