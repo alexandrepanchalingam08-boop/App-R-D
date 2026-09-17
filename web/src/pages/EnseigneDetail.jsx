@@ -32,6 +32,7 @@ export default function EnseigneDetail() {
 
   const [tour, setTour] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [name, setName] = useState('');
   const [keyLearnings, setKeyLearnings] = useState('');
   const [productForm, setProductForm] = useState(false);
   const [productName, setProductName] = useState('');
@@ -42,7 +43,7 @@ export default function EnseigneDetail() {
 
   const enseigne = tour ? tour.enseignes.find((e) => e.id === enseigneId) : null;
 
-  useSetPageMeta({ kicker: 'Enseigne', heading: enseigne ? enseigne.name : 'Enseigne', showBack: true });
+  useSetPageMeta({ kicker: 'Enseigne', heading: name || 'Enseigne', showBack: true });
 
   async function load() {
     setLoading(true);
@@ -50,6 +51,7 @@ export default function EnseigneDetail() {
       const res = await api.foodTour(id);
       setTour(res.foodTour);
       const e = res.foodTour.enseignes.find((x) => x.id === enseigneId);
+      setName(e ? e.name : '');
       setKeyLearnings(e ? e.keyLearnings : '');
     } finally {
       setLoading(false);
@@ -75,6 +77,16 @@ export default function EnseigneDetail() {
       labels: null,
       onDone: (res) => setTour(res.foodTour)
     });
+  }
+
+  async function saveName() {
+    if (!name.trim()) {
+      setName(enseigne.name);
+      return;
+    }
+    if (name === enseigne.name) return;
+    const res = await api.updateEnseigne(id, enseigneId, { name });
+    setTour(res.foodTour);
   }
 
   async function saveKeyLearnings() {
@@ -140,6 +152,19 @@ export default function EnseigneDetail() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <section className="card elev-sm" style={{ borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="field">
+          <label>Nom de l'enseigne</label>
+          <input
+            className="input"
+            style={{ borderRadius: 999, minHeight: 46, fontSize: 15 }}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={saveName}
+          />
+        </div>
+      </section>
+
       <section className="card elev-sm" style={{ borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <h2 style={{ margin: 0, fontSize: 16 }}>Le lieu</h2>
         <PhotoRow photos={lieuPhotos} onSelect={setViewerPhoto} />
