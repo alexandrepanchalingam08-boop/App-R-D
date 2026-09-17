@@ -76,7 +76,14 @@ export default function CameraOverlay() {
     setBusy(true);
     setStep('Compression…');
     try {
-      const compressed = await compressImage(f);
+      let compressed;
+      try {
+        compressed = await compressImage(f);
+      } catch {
+        // Format que le canvas ne sait pas décoder (ex. HEIC sur certains
+        // appareils) — on envoie le fichier tel quel plutôt que d'échouer.
+        compressed = f;
+      }
       await uploadBlob(compressed);
     } catch (err) {
       setErr(err.message);
@@ -224,7 +231,7 @@ export default function CameraOverlay() {
               <path d="m8 8 4-4 4 4" />
             </svg>
             Galerie
-            <input type="file" accept="image/*" capture="environment" onChange={onPick} style={{ display: 'none' }} />
+            <input type="file" accept="image/*" onChange={onPick} style={{ display: 'none' }} />
           </label>
           <button
             type="button"
