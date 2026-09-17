@@ -10,15 +10,27 @@ export default function PhotoLightbox({ photo, onClose }) {
     try {
       const res = await fetch(photo.url);
       const blob = await res.blob();
+      const filename = 'photo-' + (photo.id || Date.now()) + '.jpg';
+      const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+
+      // Sur mobile, un téléchargement classique atterrit dans l'app Fichiers /
+      // le dossier Téléchargements, pas dans la pellicule — seul le partage
+      // natif propose "Enregistrer l'image" qui, lui, écrit dans la pellicule.
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file] });
+        return;
+      }
+
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = blobUrl;
-      a.download = 'photo-' + (photo.id || Date.now()) + '.jpg';
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(blobUrl);
-    } catch {
+    } catch (e) {
+      if (e.name === 'AbortError') return; // partage annulé par l'utilisateur
       // Repli : la plupart des buckets publics servent quand même l'image dans un nouvel onglet.
       window.open(photo.url, '_blank');
     } finally {
