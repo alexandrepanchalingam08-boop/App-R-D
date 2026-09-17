@@ -188,24 +188,46 @@ router.get('/:id/export.xlsx', async (req, res, next) => {
 
     const IMG_SIZE = 110;
 
-    async function addImageCell(rowIndex, url) {
-      try {
-        const resp = await fetch(url);
-        if (!resp.ok) return;
-        const buf = Buffer.from(await resp.arrayBuffer());
-        const ext = (path.extname(new URL(url).pathname) || '.jpg').replace('.', '').toLowerCase();
-        const imageId = workbook.addImage({ buffer: buf, extension: ['png', 'jpg', 'jpeg', 'gif'].includes(ext) ? (ext === 'jpg' ? 'jpeg' : ext) : 'jpeg' });
-        sheet.addImage(imageId, { tl: { col: 4, row: rowIndex - 1 }, ext: { width: IMG_SIZE, height: IMG_SIZE } });
-        sheet.getRow(rowIndex).height = IMG_SIZE * 0.75;
-      } catch {
-        // Une photo indisponible ne doit pas faire échouer tout l'export.
-      }
+    // Récupère toutes les photos en parallèle avant de construire les lignes —
+    // un fetch par photo en série pouvait, sur un food tour avec beaucoup de
+    // photos, dépasser le temps d'exécution alloué à la fonction serverless.
+    const allUrls = [];
+    for (const enseigne of tour.enseignes) {
+      for (const photo of enseigne.photos) allUrls.push(photo.url);
+      for (const product of enseigne.products) for (const photo of product.photos) allUrls.push(photo.url);
+    }
+    const buffers = new Map();
+    await Promise.all(
+      allUrls.map(async (url) => {
+        try {
+          const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
+          if (!resp.ok) {
+            console.error('Export food tour : réponse non-ok pour la photo', url, resp.status);
+            return;
+          }
+          const buf = Buffer.from(await resp.arrayBuffer());
+          const ext = (path.extname(new URL(url).pathname) || '.jpg').replace('.', '').toLowerCase();
+          buffers.set(url, { buffer: buf, extension: ext === 'jpg' ? 'jpeg' : ['png', 'jpeg', 'gif'].includes(ext) ? ext : 'jpeg' });
+        } catch (err) {
+          // Une photo indisponible ne doit pas faire échouer tout l'export, mais on
+          // journalise la vraie cause (visible dans les logs Vercel) au lieu de la masquer.
+          console.error('Export food tour : échec de récupération de la photo', url, err);
+        }
+      })
+    );
+
+    function addImageCell(rowIndex, url) {
+      const img = buffers.get(url);
+      if (!img) return;
+      const imageId = workbook.addImage(img);
+      sheet.addImage(imageId, { tl: { col: 4, row: rowIndex - 1 }, ext: { width: IMG_SIZE, height: IMG_SIZE } });
+      sheet.getRow(rowIndex).height = IMG_SIZE * 0.75;
     }
 
     for (const enseigne of tour.enseignes) {
       for (const photo of enseigne.photos) {
         const row = sheet.addRow({ enseigne: enseigne.name, section: ENSEIGNE_PHOTO_LABEL_TEXT[photo.label] || photo.label, produit: '', commentaire: '' });
-        await addImageCell(row.number, photo.url);
+        addImageCell(row.number, photo.url);
       }
       if (enseigne.keyLearnings) {
         sheet.addRow({ enseigne: enseigne.name, section: 'Key learnings', produit: '', commentaire: enseigne.keyLearnings });
@@ -221,7 +243,7 @@ router.get('/:id/export.xlsx', async (req, res, next) => {
               commentaire: first ? product.comment : ''
             });
             first = false;
-            await addImageCell(row.number, photo.url);
+            addImageCell(row.number, photo.url);
           }
         } else {
           sheet.addRow({ enseigne: enseigne.name, section: 'Produit', produit: product.name, commentaire: product.comment });
