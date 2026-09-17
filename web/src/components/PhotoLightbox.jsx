@@ -1,5 +1,12 @@
 import { useState } from 'react';
 
+// iOS Safari n'enregistre pas correctement un blob téléchargé via <a download> —
+// il faut passer par le partage natif ("Enregistrer l'image") pour atteindre la
+// pellicule. Android gère déjà <a download> nativement vers son dossier
+// Téléchargements ; y router aussi le partage natif n'ajoute qu'une étape en
+// plus, sans garantie d'enregistrement selon la cible choisie dans le menu.
+const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
 export default function PhotoLightbox({ photo, onClose }) {
   const [busy, setBusy] = useState(false);
 
@@ -11,14 +18,13 @@ export default function PhotoLightbox({ photo, onClose }) {
       const res = await fetch(photo.url);
       const blob = await res.blob();
       const filename = 'photo-' + (photo.id || Date.now()) + '.jpg';
-      const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
 
-      // Sur mobile, un téléchargement classique atterrit dans l'app Fichiers /
-      // le dossier Téléchargements, pas dans la pellicule — seul le partage
-      // natif propose "Enregistrer l'image" qui, lui, écrit dans la pellicule.
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file] });
-        return;
+      if (isIOS && navigator.canShare) {
+        const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file] });
+          return;
+        }
       }
 
       const blobUrl = URL.createObjectURL(blob);
