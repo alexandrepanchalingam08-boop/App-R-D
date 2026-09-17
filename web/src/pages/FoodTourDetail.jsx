@@ -14,7 +14,6 @@ export default function FoodTourDetail() {
   const [name, setName] = useState('');
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [confirmDel, setConfirmDel] = useState(false);
 
   useSetPageMeta({ kicker: 'Food tour', heading: tour ? tour.lieu : 'Food tour', showBack: true });
 
@@ -47,16 +46,6 @@ export default function FoodTourDetail() {
       setFormOpen(false);
     } catch (e) {
       setErr(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function deleteTour() {
-    setBusy(true);
-    try {
-      await api.deleteFoodTour(id);
-      navigate('/food-tour');
     } finally {
       setBusy(false);
     }
@@ -137,29 +126,6 @@ export default function FoodTourDetail() {
           <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--color-neutral-700)' }}>Ajoutez la première enseigne visitée.</p>
         </div>
       )}
-
-      <section className="card elev-sm" style={{ borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <h2 style={{ margin: 0, fontSize: 16 }}>Supprimer le food tour</h2>
-        <p style={{ margin: 0, fontSize: 12.5, color: 'var(--color-neutral-700)' }}>Retire le food tour et toutes ses enseignes.</p>
-        {!confirmDel && (
-          <button type="button" className="btn btn-secondary" style={{ borderRadius: 999, minHeight: 44 }} onClick={() => setConfirmDel(true)}>
-            Supprimer « {tour.lieu} »
-          </button>
-        )}
-        {confirmDel && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 9, padding: 12, borderRadius: 'var(--radius-md)', background: 'var(--color-accent-200)' }}>
-            <div style={{ fontSize: 12.5, color: 'var(--color-accent-800)' }}>Confirmer la suppression de « {tour.lieu} » ?</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" className="btn btn-primary" disabled={busy} style={{ borderRadius: 999, minHeight: 42, flex: 1 }} onClick={deleteTour}>
-                Supprimer
-              </button>
-              <button type="button" className="btn btn-secondary" style={{ borderRadius: 999, minHeight: 42, flex: 1 }} onClick={() => setConfirmDel(false)}>
-                Annuler
-              </button>
-            </div>
-          </div>
-        )}
-      </section>
     </div>
   );
 }
