@@ -1,23 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCamera } from '../context/CameraContext.jsx';
-import { PHOTO_LABELS, PHOTO_LABEL_TEXT } from '../constants.js';
-import { api } from '../api.js';
-import { useData } from '../context/DataContext.jsx';
 import { compressImage } from '../lib/image.js';
 
 export default function CameraOverlay() {
   const { request, closeCamera } = useCamera();
-  const { mergeSession } = useData();
   const videoRef = useRef(null);
   const streamRef = useRef(null);
-  const [label, setLabel] = useState(request?.targetLabel || 'ASPECT');
+  const [label, setLabel] = useState(null);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState('');
 
   useEffect(() => {
     if (!request) return;
-    setLabel(request.targetLabel || 'ASPECT');
+    setLabel((request.labels && request.labels[0] && request.labels[0].value) || null);
     setErr(null);
     const md = navigator.mediaDevices;
     if (!md || !md.getUserMedia) {
@@ -47,9 +43,8 @@ export default function CameraOverlay() {
     setStep('Envoi…');
     try {
       const file = new File([blob], 'photo.jpg', { type: blob.type || 'image/jpeg' });
-      const res = await api.uploadPhoto(request.sessionId, file, label);
-      mergeSession(res.session);
-      request.onDone && request.onDone(res.photo);
+      const result = await request.uploadFn(file, label);
+      request.onDone && request.onDone(result);
       closeCamera();
     } catch (e) {
       setErr(e.message);
@@ -185,28 +180,30 @@ export default function CameraOverlay() {
       </div>
 
       <div style={{ flex: 'none', padding: '16px 16px 34px', display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center', color: '#f5ead8' }}>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {PHOTO_LABELS.map((l) => (
-            <button
-              key={l}
-              type="button"
-              onClick={() => setLabel(l)}
-              style={{
-                cursor: 'pointer',
-                fontSize: 12,
-                minHeight: 36,
-                padding: '0 13px',
-                borderRadius: 999,
-                whiteSpace: 'nowrap',
-                border: '1px solid ' + (label === l ? 'var(--color-accent)' : 'rgba(245,234,216,.35)'),
-                background: label === l ? 'var(--color-accent)' : 'transparent',
-                color: label === l ? '#fff' : '#f5ead8'
-              }}
-            >
-              {PHOTO_LABEL_TEXT[l]}
-            </button>
-          ))}
-        </div>
+        {request.labels && request.labels.length > 1 && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            {request.labels.map((l) => (
+              <button
+                key={l.value}
+                type="button"
+                onClick={() => setLabel(l.value)}
+                style={{
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  minHeight: 36,
+                  padding: '0 13px',
+                  borderRadius: 999,
+                  whiteSpace: 'nowrap',
+                  border: '1px solid ' + (label === l.value ? 'var(--color-accent)' : 'rgba(245,234,216,.35)'),
+                  background: label === l.value ? 'var(--color-accent)' : 'transparent',
+                  color: label === l.value ? '#fff' : '#f5ead8'
+                }}
+              >
+                {l.text}
+              </button>
+            ))}
+          </div>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
           <label
             style={{

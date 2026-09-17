@@ -96,3 +96,53 @@ export const sessionInclude = {
     }
   }
 };
+
+export function serializeFoodTour(ft) {
+  return {
+    id: ft.id,
+    lieu: ft.lieu,
+    date: ft.date,
+    createdAt: ft.createdAt,
+    enseignes: (ft.enseignes || []).map(serializeEnseigne)
+  };
+}
+
+export function serializeEnseigne(e) {
+  return {
+    id: e.id,
+    foodTourId: e.foodTourId,
+    name: e.name,
+    keyLearnings: e.keyLearnings || '',
+    createdAt: e.createdAt,
+    photos: (e.photos || []).map(serializeEnseignePhoto),
+    products: (e.products || []).map(serializeProduct)
+  };
+}
+
+export function serializeEnseignePhoto(p) {
+  return { id: p.id, enseigneId: p.enseigneId, url: p.url, label: p.label, createdAt: p.createdAt };
+}
+
+export function serializeProduct(p) {
+  return {
+    id: p.id,
+    enseigneId: p.enseigneId,
+    name: p.name,
+    comment: p.comment || '',
+    createdAt: p.createdAt,
+    photos: (p.photos || []).map((ph) => ({ id: ph.id, productId: ph.productId, url: ph.url, createdAt: ph.createdAt }))
+  };
+}
+
+export const foodTourInclude = {
+  enseignes: {
+    orderBy: { order: 'asc' },
+    include: {
+      photos: { orderBy: { createdAt: 'asc' } },
+      products: {
+        orderBy: { order: 'asc' },
+        include: { photos: { orderBy: { createdAt: 'asc' } } }
+      }
+    }
+  }
+};

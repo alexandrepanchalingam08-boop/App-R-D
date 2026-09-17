@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useSetPageMeta } from '../context/PageMetaContext.jsx';
 import { useCamera } from '../context/CameraContext.jsx';
 import { dateLabel } from '../lib/compute.js';
-import { GRILLE, HED } from '../constants.js';
+import { GRILLE, HED, PHOTO_LABELS, PHOTO_LABEL_TEXT } from '../constants.js';
 import { api } from '../api.js';
 import CompositionReadOnly from '../components/CompositionReadOnly.jsx';
 import MicButton from '../components/MicButton.jsx';
@@ -163,7 +163,13 @@ export default function Saisie() {
           type="button"
           className="btn btn-secondary"
           style={{ borderRadius: 999, minHeight: 46 }}
-          onClick={() => openCamera(session.id, 'ASPECT', () => setPhotoCount((c) => c + 1))}
+          onClick={() =>
+            openCamera({
+              uploadFn: (file, label) => api.uploadPhoto(session.id, file, label),
+              labels: PHOTO_LABELS.map((l) => ({ value: l, text: PHOTO_LABEL_TEXT[l] })),
+              onDone: () => setPhotoCount((c) => c + 1)
+            })
+          }
         >
           Ajouter une photo{photoCount ? ' (' + photoCount + ')' : ''}
         </button>

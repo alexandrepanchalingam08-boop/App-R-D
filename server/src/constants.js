@@ -41,6 +41,10 @@ export const PHOTO_LABEL_TEXT = {
   ETIQUETTE: 'Étiquette'
 };
 
+// Food tour — section "Le lieu" : photos du lieu vs de la carte/menu.
+export const ENSEIGNE_PHOTO_LABELS = ['LIEU', 'MENU'];
+export const ENSEIGNE_PHOTO_LABEL_TEXT = { LIEU: 'Lieu', MENU: 'Carte / Menu' };
+
 // Sensory grid — one slider per broad modality, as defined by R&D.
 export const GRILLE = [
   { k: 'visuel', mod: 'Visuel', label: 'Visuel' },

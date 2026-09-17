@@ -3,10 +3,12 @@ import { createContext, useCallback, useContext, useState } from 'react';
 const CameraContext = createContext(null);
 
 export function CameraProvider({ children }) {
-  const [request, setRequest] = useState(null); // { sessionId, targetLabel, onDone }
+  // request: { uploadFn(file, label) -> Promise<result>, labels: [{value,text}] | null, onDone(result) }
+  // `labels` omitted or single-entry hides the label picker row.
+  const [request, setRequest] = useState(null);
 
-  const openCamera = useCallback((sessionId, targetLabel, onDone) => {
-    setRequest({ sessionId, targetLabel, onDone });
+  const openCamera = useCallback((opts) => {
+    setRequest(opts);
   }, []);
   const closeCamera = useCallback(() => setRequest(null), []);
 

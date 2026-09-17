@@ -6,7 +6,8 @@ const ICONS = {
   hist: 'M4 6h16M4 12h16M4 18h10',
   prod: 'M6 3h9l5 5v13H6zM15 3v5h5',
   buy: 'M6 6h15l-2 9H8zM6 6 5 3H2M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2M18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2',
-  admin: 'M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1'
+  admin: 'M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1',
+  foodtour: 'M4 3v18M4 3h6a3 3 0 0 1 0 6H4M15 3v18M20 3l-2 7h4l-2 7'
 };
 
 export default function BottomNav() {
@@ -15,7 +16,8 @@ export default function BottomNav() {
   const items = [
     { id: 'actives', to: '/en-cours', label: 'En cours' },
     { id: 'hist', to: '/historique', label: 'Historique' },
-    { id: 'prod', to: '/produits', label: 'Produits' }
+    { id: 'prod', to: '/produits', label: 'Produits' },
+    { id: 'foodtour', to: '/food-tour', label: 'Food tour' }
   ];
   if (isBuyer) items.push({ id: 'buy', to: '/achats', label: 'Mes achats' });
   if (user?.isAdmin) items.push({ id: 'admin', to: '/admin', label: 'Admin' });

@@ -55,5 +55,35 @@ export const api = {
     form.append('photo', file);
     form.append('label', label);
     return request(`/sessions/${sessionId}/photos`, { method: 'POST', body: form });
+  },
+
+  foodTours: () => request('/foodtours'),
+  foodTour: (id) => request(`/foodtours/${id}`),
+  createFoodTour: (payload) => request('/foodtours', { method: 'POST', body: JSON.stringify(payload) }),
+  deleteFoodTour: (id) => request(`/foodtours/${id}`, { method: 'DELETE' }),
+
+  createEnseigne: (foodTourId, payload) =>
+    request(`/foodtours/${foodTourId}/enseignes`, { method: 'POST', body: JSON.stringify(payload) }),
+  updateEnseigne: (foodTourId, enseigneId, payload) =>
+    request(`/foodtours/${foodTourId}/enseignes/${enseigneId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  deleteEnseigne: (foodTourId, enseigneId) =>
+    request(`/foodtours/${foodTourId}/enseignes/${enseigneId}`, { method: 'DELETE' }),
+  uploadEnseignePhoto: (foodTourId, enseigneId, file, label) => {
+    const form = new FormData();
+    form.append('photo', file);
+    form.append('label', label);
+    return request(`/foodtours/${foodTourId}/enseignes/${enseigneId}/photos`, { method: 'POST', body: form });
+  },
+
+  createProduct: (foodTourId, enseigneId, payload) =>
+    request(`/foodtours/${foodTourId}/enseignes/${enseigneId}/products`, { method: 'POST', body: JSON.stringify(payload) }),
+  updateProduct: (foodTourId, enseigneId, productId, payload) =>
+    request(`/foodtours/${foodTourId}/enseignes/${enseigneId}/products/${productId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  deleteProduct: (foodTourId, enseigneId, productId) =>
+    request(`/foodtours/${foodTourId}/enseignes/${enseigneId}/products/${productId}`, { method: 'DELETE' }),
+  uploadProductPhoto: (foodTourId, enseigneId, productId, file) => {
+    const form = new FormData();
+    form.append('photo', file);
+    return request(`/foodtours/${foodTourId}/enseignes/${enseigneId}/products/${productId}/photos`, { method: 'POST', body: form });
   }
 };

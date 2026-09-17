@@ -37,11 +37,12 @@ model User {
   isAdmin      Boolean  @default(false)
   createdAt    DateTime @default(now())
 
-  createdSessions TastingSession[] @relation("SessionCreatedBy")
-  boughtSessions  TastingSession[] @relation("SessionBuyer")
-  grades          Grade[]
-  photos          Photo[]
-  prices          Price[]
+  createdSessions   TastingSession[] @relation("SessionCreatedBy")
+  boughtSessions    TastingSession[] @relation("SessionBuyer")
+  grades            Grade[]
+  photos            Photo[]
+  prices            Price[]
+  createdFoodTours  FoodTour[]       @relation("FoodTourCreatedBy")
 }
 
 model TastingSession {
@@ -151,4 +152,67 @@ model Price {
   byUser   User?   @relation(fields: [byUserId], references: [id])
 
   updatedAt DateTime @updatedAt
+}
+
+// Food tour : visite de plusieurs enseignes concurrentes un même jour/lieu.
+// Mécanique proche de TastingSession/Version, mais un domaine à part —
+// "enseignes visitées" plutôt que "versions", sans grille de dégustation.
+model FoodTour {
+  id        String   @id @default(cuid())
+  lieu      String
+  date      String
+  createdAt DateTime @default(now())
+
+  createdById String?
+  createdBy   User?   @relation("FoodTourCreatedBy", fields: [createdById], references: [id])
+
+  enseignes Enseigne[]
+}
+
+model Enseigne {
+  id         String   @id @default(cuid())
+  foodTourId String
+  foodTour   FoodTour @relation(fields: [foodTourId], references: [id], onDelete: Cascade)
+
+  name         String
+  keyLearnings String?
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  photos   EnseignePhoto[]
+  products Product[]
+}
+
+// EnseignePhoto.label : LIEU | MENU (voir src/constants.js)
+model EnseignePhoto {
+  id         String   @id @default(cuid())
+  enseigneId String
+  enseigne   Enseigne @relation(fields: [enseigneId], references: [id], onDelete: Cascade)
+
+  url   String
+  label String
+
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id         String   @id @default(cuid())
+  enseigneId String
+  enseigne   Enseigne @relation(fields: [enseigneId], references: [id], onDelete: Cascade)
+
+  name    String
+  comment String?
+  order   Int      @default(0)
+  createdAt DateTime @default(now())
+
+  photos ProductPhoto[]
+}
+
+model ProductPhoto {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  url       String
+  createdAt DateTime @default(now())
 }

@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useSetPageMeta } from '../context/PageMetaContext.jsx';
 import { useCamera } from '../context/CameraContext.jsx';
 import { activeVersion, dateLabel, fmt, mean, sessionStats } from '../lib/compute.js';
-import { KIND_META, UNIT_LABELS, PHOTO_LABEL_TEXT, PRIX_VENTE_UNITE_LABELS } from '../constants.js';
+import { KIND_META, UNIT_LABELS, PHOTO_LABELS, PHOTO_LABEL_TEXT, PRIX_VENTE_UNITE_LABELS } from '../constants.js';
 import { api } from '../api.js';
 import CompositionBuilder from '../components/CompositionBuilder.jsx';
 import CompositionReadOnly from '../components/CompositionReadOnly.jsx';
@@ -15,7 +15,7 @@ export default function SessionDetail() {
   const { id } = useParams();
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { sessions, users, loading, findSession, refresh } = useData();
+  const { sessions, users, loading, findSession, refresh, mergeSession } = useData();
   const { user, isRD } = useAuth();
   const { openCamera } = useCamera();
 
@@ -466,7 +466,13 @@ export default function SessionDetail() {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => openCamera(session.id, 'ASPECT', null)}
+              onClick={() =>
+                openCamera({
+                  uploadFn: (file, label) => api.uploadPhoto(session.id, file, label),
+                  labels: PHOTO_LABELS.map((l) => ({ value: l, text: PHOTO_LABEL_TEXT[l] })),
+                  onDone: (res) => mergeSession(res.session)
+                })
+              }
               style={{ borderRadius: 999, minHeight: 46 }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round">

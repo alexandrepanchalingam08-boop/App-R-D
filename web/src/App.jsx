@@ -13,6 +13,9 @@ import Create from './pages/Create.jsx';
 import Saisie from './pages/Saisie.jsx';
 import Achats from './pages/Achats.jsx';
 import Admin from './pages/Admin.jsx';
+import FoodTours from './pages/FoodTours.jsx';
+import FoodTourDetail from './pages/FoodTourDetail.jsx';
+import EnseigneDetail from './pages/EnseigneDetail.jsx';
 
 function Guard({ when, children, fallback = '/en-cours' }) {
   return when ? children : <Navigate to={fallback} replace />;
@@ -51,6 +54,9 @@ export default function App() {
               <Route path="session/:id" element={<SessionDetail />} />
               <Route path="nouveau" element={<Create />} />
               <Route path="saisie/:sessionId/:versionId" element={<Saisie />} />
+              <Route path="food-tour" element={<FoodTours />} />
+              <Route path="food-tour/:id" element={<FoodTourDetail />} />
+              <Route path="food-tour/:id/enseigne/:enseigneId" element={<EnseigneDetail />} />
               <Route
                 path="achats"
                 element={

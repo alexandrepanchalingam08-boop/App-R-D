@@ -37,6 +37,10 @@ export const PRIX_VENTE_UNITE_LABELS = { MENU: 'En menu', UNITE: 'À l’unité'
 export const PHOTO_LABELS = ['ASPECT', 'PACKAGING', 'ETIQUETTE'];
 export const PHOTO_LABEL_TEXT = { ASPECT: 'Aspect du produit', PACKAGING: 'Packaging', ETIQUETTE: 'Étiquette' };
 
+// Food tour — section "Le lieu" : photos du lieu vs de la carte/menu.
+export const ENSEIGNE_PHOTO_LABELS = ['LIEU', 'MENU'];
+export const ENSEIGNE_PHOTO_LABEL_TEXT = { LIEU: 'Lieu', MENU: 'Carte / Menu' };
+
 export const GRILLE = [
   { k: 'visuel', mod: 'Visuel', label: 'Visuel' },
   { k: 'odeur', mod: 'Odeur', label: 'Odeur' },
