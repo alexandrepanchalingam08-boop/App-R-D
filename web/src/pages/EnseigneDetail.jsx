@@ -5,15 +5,21 @@ import { useCamera } from '../context/CameraContext.jsx';
 import { ENSEIGNE_PHOTO_LABELS, ENSEIGNE_PHOTO_LABEL_TEXT } from '../constants.js';
 import { api } from '../api.js';
 import MicButton from '../components/MicButton.jsx';
+import PhotoLightbox from '../components/PhotoLightbox.jsx';
 
-function PhotoRow({ photos }) {
+function PhotoRow({ photos, onSelect }) {
   if (!photos.length) return null;
   return (
     <div style={{ display: 'flex', gap: 10, overflow: 'auto', paddingBottom: 2 }}>
       {photos.map((ph) => (
-        <div key={ph.id} style={{ flex: 'none', width: 112, height: 112, borderRadius: 'var(--radius-md)', overflow: 'hidden', background: 'var(--color-neutral-200)' }}>
+        <button
+          key={ph.id}
+          type="button"
+          onClick={() => onSelect(ph)}
+          style={{ flex: 'none', width: 112, height: 112, padding: 0, border: 0, cursor: 'pointer', borderRadius: 'var(--radius-md)', overflow: 'hidden', background: 'var(--color-neutral-200)' }}
+        >
           <div style={{ width: '100%', height: '100%', backgroundImage: `url("${ph.url}")`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-        </div>
+        </button>
       ))}
     </div>
   );
@@ -32,6 +38,7 @@ export default function EnseigneDetail() {
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
   const [confirmDel, setConfirmDel] = useState(false);
+  const [viewerPhoto, setViewerPhoto] = useState(null);
 
   const enseigne = tour ? tour.enseignes.find((e) => e.id === enseigneId) : null;
 
@@ -135,10 +142,10 @@ export default function EnseigneDetail() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <section className="card elev-sm" style={{ borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <h2 style={{ margin: 0, fontSize: 16 }}>Le lieu</h2>
-        <PhotoRow photos={lieuPhotos} />
+        <PhotoRow photos={lieuPhotos} onSelect={setViewerPhoto} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-neutral-700)' }}>Carte / Menu</div>
-          <PhotoRow photos={menuPhotos} />
+          <PhotoRow photos={menuPhotos} onSelect={setViewerPhoto} />
         </div>
         <button type="button" className="btn btn-primary" style={{ borderRadius: 999, minHeight: 46 }} onClick={addLieuPhoto}>
           Ajouter une photo
@@ -164,7 +171,14 @@ export default function EnseigneDetail() {
         <h2 style={{ margin: 0, fontSize: 16 }}>Produits</h2>
 
         {enseigne.products.map((p) => (
-          <ProductCard key={p.id} product={p} onAddPhoto={() => addProductPhoto(p.id)} onSaveComment={(v) => saveComment(p, v)} onDelete={() => deleteProduct(p.id)} />
+          <ProductCard
+            key={p.id}
+            product={p}
+            onAddPhoto={() => addProductPhoto(p.id)}
+            onSaveComment={(v) => saveComment(p, v)}
+            onDelete={() => deleteProduct(p.id)}
+            onSelectPhoto={setViewerPhoto}
+          />
         ))}
 
         <button type="button" className="btn btn-secondary" style={{ borderRadius: 999, minHeight: 44 }} onClick={() => setProductForm(!productForm)}>
@@ -208,11 +222,13 @@ export default function EnseigneDetail() {
           </div>
         )}
       </section>
+
+      <PhotoLightbox photo={viewerPhoto} onClose={() => setViewerPhoto(null)} />
     </div>
   );
 }
 
-function ProductCard({ product, onAddPhoto, onSaveComment, onDelete }) {
+function ProductCard({ product, onAddPhoto, onSaveComment, onDelete, onSelectPhoto }) {
   const [comment, setComment] = useState(product.comment || '');
 
   return (
@@ -229,7 +245,7 @@ function ProductCard({ product, onAddPhoto, onSaveComment, onDelete }) {
           Supprimer
         </button>
       </div>
-      <PhotoRow photos={product.photos} />
+      <PhotoRow photos={product.photos} onSelect={onSelectPhoto} />
       <button type="button" className="btn btn-secondary" style={{ borderRadius: 999, minHeight: 40, fontSize: 12.5 }} onClick={onAddPhoto}>
         Ajouter une photo
       </button>
