@@ -12,11 +12,21 @@ import { serializeFoodTour, foodTourInclude } from '../serialize.js';
 import { uploadPhoto } from '../storage.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// Logo et photo de couverture extraits du template PowerPoint Quick fourni —
-// chargés une fois au démarrage, réutilisés pour chaque export.
-const PPTX_LOGO_B64 = 'image/png;base64,' + fs.readFileSync(path.join(__dirname, '../../assets/pptx-logo.png')).toString('base64');
-const PPTX_COVER_B64 = 'image/jpeg;base64,' + fs.readFileSync(path.join(__dirname, '../../assets/pptx-cover.jpg')).toString('base64');
 const QUICK_RED = 'C00000';
+
+// Logo et photo de couverture extraits du template PowerPoint Quick fourni —
+// lus au premier export (pas au chargement du module : une erreur ici ne doit
+// jamais empêcher le démarrage du serveur ni casser les autres routes).
+let pptxAssetsCache = null;
+function getPptxAssets() {
+  if (!pptxAssetsCache) {
+    pptxAssetsCache = {
+      logo: 'image/png;base64,' + fs.readFileSync(path.join(__dirname, '../../assets/pptx-logo.png')).toString('base64'),
+      cover: 'image/jpeg;base64,' + fs.readFileSync(path.join(__dirname, '../../assets/pptx-cover.jpg')).toString('base64')
+    };
+  }
+  return pptxAssetsCache;
+}
 
 // Kept under Vercel serverless functions' ~4.5MB request body ceiling
 // (client already compresses photos before upload — see web/src/lib/image.js).
@@ -284,6 +294,7 @@ router.get('/:id/export.pptx', async (req, res, next) => {
     const tour = await loadFoodTour(req.params.id);
     if (!tour) return res.status(404).json({ error: 'Food tour introuvable.' });
 
+    const pptxAssets = getPptxAssets();
     const buffers = await fetchPhotoBuffers(collectPhotoUrls(tour));
     function imgData(url) {
       const img = buffers.get(url);
@@ -299,7 +310,7 @@ router.get('/:id/export.pptx', async (req, res, next) => {
     // photo pleine page + bandeau translucide + titre centré.
     const cover = pptx.addSlide();
     cover.background = { color: 'FFFFFF' };
-    cover.addImage({ data: PPTX_COVER_B64, x: 0, y: 0, w: SLIDE_W, h: SLIDE_H, sizing: { type: 'cover', w: SLIDE_W, h: SLIDE_H } });
+    cover.addImage({ data: pptxAssets.cover, x: 0, y: 0, w: SLIDE_W, h: SLIDE_H, sizing: { type: 'cover', w: SLIDE_W, h: SLIDE_H } });
     cover.addShape('rect', { x: 0, y: 4.3, w: SLIDE_W, h: 1.35, fill: { color: 'FFFFFF', transparency: 50 } });
     cover.addText(tour.lieu, {
       x: 0,
@@ -341,7 +352,7 @@ router.get('/:id/export.pptx', async (req, res, next) => {
       const slide = pptx.addSlide();
       slide.background = { color: 'FFFFFF' };
       slide.addShape('rect', { x: 0, y: 0.14, w: SLIDE_W, h: 0.95, fill: { color: QUICK_RED } });
-      slide.addImage({ data: PPTX_LOGO_B64, x: 0.15, y: 0.07, w: 0.5, h: 0.845 });
+      slide.addImage({ data: pptxAssets.logo, x: 0.15, y: 0.07, w: 0.5, h: 0.845 });
       slide.addText(enseigne.name, {
         x: 0,
         y: 0.14,
