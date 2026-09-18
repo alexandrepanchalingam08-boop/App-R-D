@@ -125,6 +125,12 @@ export default function EnseigneDetail() {
     setTour(res.foodTour);
   }
 
+  async function saveProductName(product, value) {
+    if (!value.trim() || value === product.name) return;
+    const res = await api.updateProduct(id, enseigneId, product.id, { name: value });
+    setTour(res.foodTour);
+  }
+
   async function deleteEnseigne() {
     setBusy(true);
     try {
@@ -201,6 +207,7 @@ export default function EnseigneDetail() {
             product={p}
             onAddPhoto={() => addProductPhoto(p.id)}
             onSaveComment={(v) => saveComment(p, v)}
+            onSaveName={(v) => saveProductName(p, v)}
             onDelete={() => deleteProduct(p.id)}
             onSelectPhoto={setViewerPhoto}
           />
@@ -253,18 +260,33 @@ export default function EnseigneDetail() {
   );
 }
 
-function ProductCard({ product, onAddPhoto, onSaveComment, onDelete, onSelectPhoto }) {
+function ProductCard({ product, onAddPhoto, onSaveComment, onSaveName, onDelete, onSelectPhoto }) {
   const [comment, setComment] = useState(product.comment || '');
+  const [name, setName] = useState(product.name);
+
+  function handleNameBlur() {
+    if (!name.trim()) {
+      setName(product.name);
+      return;
+    }
+    onSaveName(name);
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 12, borderRadius: 'var(--radius-md)', background: 'var(--color-neutral-100)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ fontSize: 14, fontWeight: 600 }}>{product.name}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <input
+          className="input"
+          style={{ flex: 1, minWidth: 0, borderRadius: 999, minHeight: 38, fontSize: 14, fontWeight: 600 }}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onBlur={handleNameBlur}
+        />
         <button
           type="button"
           className="btn btn-ghost"
           aria-label={'Supprimer ' + product.name}
-          style={{ borderRadius: 999, minHeight: 32, padding: '0 10px', fontSize: 12 }}
+          style={{ borderRadius: 999, minHeight: 32, padding: '0 10px', fontSize: 12, flex: 'none' }}
           onClick={onDelete}
         >
           Supprimer
