@@ -79,6 +79,18 @@ export default function FoodTourDetail() {
           </svg>
           Télécharger en Excel
         </a>
+        <a
+          href={`/api/foodtours/${tour.id}/export.pptx`}
+          className="btn btn-primary"
+          style={{ borderRadius: 999, minHeight: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textDecoration: 'none' }}
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3v13" />
+            <path d="m7 11 5 5 5-5" />
+            <path d="M4 21h16" />
+          </svg>
+          Exporter en PowerPoint
+        </a>
       </section>
 
       <button type="button" className="btn btn-secondary" style={{ borderRadius: 999, minHeight: 46 }} onClick={() => setFormOpen(!formOpen)}>

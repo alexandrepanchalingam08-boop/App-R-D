@@ -1,12 +1,22 @@
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'node:path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import ExcelJS from 'exceljs';
+import PptxGenJS from 'pptxgenjs';
 import { prisma } from '../db.js';
 import { requireAuth } from '../auth.js';
 import { ENSEIGNE_PHOTO_LABELS, ENSEIGNE_PHOTO_LABEL_TEXT } from '../constants.js';
 import { serializeFoodTour, foodTourInclude } from '../serialize.js';
 import { uploadPhoto } from '../storage.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Logo et photo de couverture extraits du template PowerPoint Quick fourni —
+// chargés une fois au démarrage, réutilisés pour chaque export.
+const PPTX_LOGO_B64 = 'image/png;base64,' + fs.readFileSync(path.join(__dirname, '../../assets/pptx-logo.png')).toString('base64');
+const PPTX_COVER_B64 = 'image/jpeg;base64,' + fs.readFileSync(path.join(__dirname, '../../assets/pptx-cover.jpg')).toString('base64');
+const QUICK_RED = 'C00000';
 
 // Kept under Vercel serverless functions' ~4.5MB request body ceiling
 // (client already compresses photos before upload — see web/src/lib/image.js).
@@ -28,6 +38,43 @@ async function loadFoodTour(id) {
 
 async function findEnseigne(foodTourId, enseigneId) {
   return prisma.enseigne.findFirst({ where: { id: enseigneId, foodTourId } });
+}
+
+function collectPhotoUrls(tour) {
+  const urls = [];
+  for (const enseigne of tour.enseignes) {
+    for (const photo of enseigne.photos) urls.push(photo.url);
+    for (const product of enseigne.products) for (const photo of product.photos) urls.push(photo.url);
+  }
+  return urls;
+}
+
+// Récupère toutes les photos d'un food tour en parallèle avant de construire
+// le document — un fetch par photo en série pouvait, sur un food tour avec
+// beaucoup de photos, dépasser le temps d'exécution alloué à la fonction
+// serverless. Une photo indisponible ne doit pas faire échouer tout l'export,
+// mais on journalise la vraie cause (visible dans les logs Vercel) plutôt que
+// de la masquer.
+async function fetchPhotoBuffers(urls) {
+  const buffers = new Map();
+  await Promise.all(
+    urls.map(async (url) => {
+      try {
+        const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
+        if (!resp.ok) {
+          console.error('Export food tour : réponse non-ok pour la photo', url, resp.status);
+          return;
+        }
+        const buf = Buffer.from(await resp.arrayBuffer());
+        const ext = (path.extname(new URL(url).pathname) || '.jpg').replace('.', '').toLowerCase();
+        const extension = ext === 'jpg' ? 'jpeg' : ['png', 'jpeg', 'gif'].includes(ext) ? ext : 'jpeg';
+        buffers.set(url, { buffer: buf, extension });
+      } catch (err) {
+        console.error('Export food tour : échec de récupération de la photo', url, err);
+      }
+    })
+  );
+  return buffers;
 }
 
 router.get('/', async (req, res) => {
@@ -180,34 +227,7 @@ router.get('/:id/export.xlsx', async (req, res, next) => {
     sheet.getRow(1).font = { bold: true };
 
     const IMG_SIZE = 110;
-
-    // Récupère toutes les photos en parallèle avant de construire les lignes —
-    // un fetch par photo en série pouvait, sur un food tour avec beaucoup de
-    // photos, dépasser le temps d'exécution alloué à la fonction serverless.
-    const allUrls = [];
-    for (const enseigne of tour.enseignes) {
-      for (const photo of enseigne.photos) allUrls.push(photo.url);
-      for (const product of enseigne.products) for (const photo of product.photos) allUrls.push(photo.url);
-    }
-    const buffers = new Map();
-    await Promise.all(
-      allUrls.map(async (url) => {
-        try {
-          const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
-          if (!resp.ok) {
-            console.error('Export food tour : réponse non-ok pour la photo', url, resp.status);
-            return;
-          }
-          const buf = Buffer.from(await resp.arrayBuffer());
-          const ext = (path.extname(new URL(url).pathname) || '.jpg').replace('.', '').toLowerCase();
-          buffers.set(url, { buffer: buf, extension: ext === 'jpg' ? 'jpeg' : ['png', 'jpeg', 'gif'].includes(ext) ? ext : 'jpeg' });
-        } catch (err) {
-          // Une photo indisponible ne doit pas faire échouer tout l'export, mais on
-          // journalise la vraie cause (visible dans les logs Vercel) au lieu de la masquer.
-          console.error('Export food tour : échec de récupération de la photo', url, err);
-        }
-      })
-    );
+    const buffers = await fetchPhotoBuffers(collectPhotoUrls(tour));
 
     function addImageCell(rowIndex, url) {
       const img = buffers.get(url);
@@ -249,6 +269,133 @@ router.get('/:id/export.xlsx', async (req, res, next) => {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     await workbook.xlsx.write(res);
     res.end();
+  } catch (err) {
+    next(err);
+  }
+});
+
+function truncate(text, max) {
+  const t = (text || '').trim();
+  return t.length > max ? t.slice(0, max - 1).trim() + '…' : t;
+}
+
+router.get('/:id/export.pptx', async (req, res, next) => {
+  try {
+    const tour = await loadFoodTour(req.params.id);
+    if (!tour) return res.status(404).json({ error: 'Food tour introuvable.' });
+
+    const buffers = await fetchPhotoBuffers(collectPhotoUrls(tour));
+    function imgData(url) {
+      const img = buffers.get(url);
+      return img ? `image/${img.extension};base64,` + img.buffer.toString('base64') : null;
+    }
+
+    const pptx = new PptxGenJS();
+    pptx.layout = 'LAYOUT_WIDE'; // 13.333" x 7.5"
+    const SLIDE_W = 13.333;
+    const SLIDE_H = 7.5;
+
+    // Slide de couverture — reprend la mise en page "Titre" du template Quick :
+    // photo pleine page + bandeau translucide + titre centré.
+    const cover = pptx.addSlide();
+    cover.background = { color: 'FFFFFF' };
+    cover.addImage({ data: PPTX_COVER_B64, x: 0, y: 0, w: SLIDE_W, h: SLIDE_H, sizing: { type: 'cover', w: SLIDE_W, h: SLIDE_H } });
+    cover.addShape('rect', { x: 0, y: 4.3, w: SLIDE_W, h: 1.35, fill: { color: 'FFFFFF', transparency: 50 } });
+    cover.addText(tour.lieu, {
+      x: 0,
+      y: 4.35,
+      w: SLIDE_W,
+      h: 0.9,
+      align: 'center',
+      valign: 'middle',
+      fontFace: 'Impact',
+      fontSize: 40,
+      color: 'FFFFFF',
+      isTextBox: true
+    });
+    cover.addText('Food tour du ' + tour.date, {
+      x: 0,
+      y: 5.2,
+      w: SLIDE_W,
+      h: 0.4,
+      align: 'center',
+      valign: 'middle',
+      fontFace: 'Calibri',
+      fontSize: 16,
+      color: 'FFFFFF',
+      isTextBox: true
+    });
+
+    const MAX_PRODUCTS = 6;
+    const COLS = 3;
+    const GRID_X = 0.5;
+    const GRID_Y = 2.4;
+    const GRID_W = SLIDE_W - 2 * GRID_X;
+    const GAP = 0.25;
+    const COL_W = (GRID_W - GAP * (COLS - 1)) / COLS;
+    const IMG_H = 1.5;
+    const CAP_H = 0.6;
+    const ROW_H = IMG_H + CAP_H + 0.2;
+
+    for (const enseigne of tour.enseignes) {
+      const slide = pptx.addSlide();
+      slide.background = { color: 'FFFFFF' };
+      slide.addShape('rect', { x: 0, y: 0.14, w: SLIDE_W, h: 0.95, fill: { color: QUICK_RED } });
+      slide.addImage({ data: PPTX_LOGO_B64, x: 0.15, y: 0.07, w: 0.5, h: 0.845 });
+      slide.addText(enseigne.name, {
+        x: 0,
+        y: 0.14,
+        w: SLIDE_W,
+        h: 0.95,
+        align: 'center',
+        valign: 'middle',
+        fontFace: 'Impact',
+        fontSize: 30,
+        color: 'FFFFFF',
+        isTextBox: true
+      });
+
+      let contentY = GRID_Y;
+      if (enseigne.keyLearnings) {
+        slide.addShape('rect', { x: GRID_X, y: 1.3, w: GRID_W, h: 0.9, fill: { color: 'FDE9E9' }, line: { type: 'none' } });
+        slide.addText(
+          [
+            { text: 'Key learnings\n', options: { bold: true, color: QUICK_RED, fontSize: 13, breakLine: true } },
+            { text: truncate(enseigne.keyLearnings, 220), options: { color: '3A3A3A', fontSize: 12 } }
+          ],
+          { x: GRID_X + 0.2, y: 1.4, w: GRID_W - 0.4, h: 0.7, valign: 'top', fontFace: 'Calibri', isTextBox: true, margin: 0 }
+        );
+      } else {
+        contentY = 1.3;
+      }
+
+      const products = enseigne.products.slice(0, MAX_PRODUCTS);
+      products.forEach((product, idx) => {
+        const col = idx % COLS;
+        const row = Math.floor(idx / COLS);
+        const x = GRID_X + col * (COL_W + GAP);
+        const y = contentY + row * ROW_H;
+        const photoUrl = product.photos[0] && imgData(product.photos[0].url);
+        if (photoUrl) {
+          slide.addImage({ data: photoUrl, x, y, w: COL_W, h: IMG_H, sizing: { type: 'cover', w: COL_W, h: IMG_H } });
+        } else {
+          slide.addShape('rect', { x, y, w: COL_W, h: IMG_H, fill: { color: 'F2F2F2' }, line: { color: 'DDDDDD' } });
+        }
+        slide.addText(
+          [
+            { text: truncate(product.name, 40) + '\n', options: { bold: true, breakLine: true } },
+            { text: truncate(product.comment, 90), options: { italic: true, color: '5A5A5A' } }
+          ],
+          { x, y: y + IMG_H + 0.05, w: COL_W, h: CAP_H, fontFace: 'Calibri', fontSize: 10, valign: 'top', isTextBox: true, margin: 0 }
+        );
+      });
+    }
+
+    const buf = await pptx.write({ outputType: 'nodebuffer' });
+    const filename = `food-tour-${(tour.lieu || 'export').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.pptx`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.end(buf);
   } catch (err) {
     next(err);
   }
