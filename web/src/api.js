@@ -60,7 +60,6 @@ export const api = {
   foodTours: () => request('/foodtours'),
   foodTour: (id) => request(`/foodtours/${id}`),
   createFoodTour: (payload) => request('/foodtours', { method: 'POST', body: JSON.stringify(payload) }),
-  deleteFoodTour: (id) => request(`/foodtours/${id}`, { method: 'DELETE' }),
 
   createEnseigne: (foodTourId, payload) =>
     request(`/foodtours/${foodTourId}/enseignes`, { method: 'POST', body: JSON.stringify(payload) }),

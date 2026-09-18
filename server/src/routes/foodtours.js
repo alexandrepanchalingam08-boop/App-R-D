@@ -58,13 +58,6 @@ router.get('/:id', async (req, res) => {
   res.json({ foodTour: serializeFoodTour(tour) });
 });
 
-router.delete('/:id', async (req, res) => {
-  const tour = await prisma.foodTour.findUnique({ where: { id: req.params.id } });
-  if (!tour) return res.status(404).json({ error: 'Food tour introuvable.' });
-  await prisma.foodTour.delete({ where: { id: tour.id } });
-  res.json({ ok: true });
-});
-
 router.post('/:id/enseignes', async (req, res) => {
   const tour = await prisma.foodTour.findUnique({ where: { id: req.params.id } });
   if (!tour) return res.status(404).json({ error: 'Food tour introuvable.' });
