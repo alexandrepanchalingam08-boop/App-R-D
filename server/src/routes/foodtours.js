@@ -4,7 +4,6 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import ExcelJS from 'exceljs';
-import PptxGenJS from 'pptxgenjs';
 import { prisma } from '../db.js';
 import { requireAuth } from '../auth.js';
 import { ENSEIGNE_PHOTO_LABELS, ENSEIGNE_PHOTO_LABEL_TEXT } from '../constants.js';
@@ -301,6 +300,7 @@ router.get('/:id/export.pptx', async (req, res, next) => {
       return img ? `image/${img.extension};base64,` + img.buffer.toString('base64') : null;
     }
 
+    const { default: PptxGenJS } = await import('pptxgenjs');
     const pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_WIDE'; // 13.333" x 7.5"
     const SLIDE_W = 13.333;
