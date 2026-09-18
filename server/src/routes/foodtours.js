@@ -3,6 +3,7 @@ import multer from 'multer';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import ExcelJS from 'exceljs';
 import { prisma } from '../db.js';
 import { requireAuth } from '../auth.js';
@@ -12,6 +13,13 @@ import { uploadPhoto } from '../storage.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const QUICK_RED = 'C00000';
+
+// pptxgenjs est chargé en CommonJS via require() plutôt qu'en import ESM :
+// une fois empaqueté par Vercel, l'import dynamique de sa variante ESM finit
+// dans un chunk séparé exécuté avec require(), ce qui plante avec
+// "Cannot use import statement outside a module". require() force la
+// résolution CJS (dist/pptxgen.cjs.js), qui n'a pas ce problème.
+const require = createRequire(import.meta.url);
 
 // Logo et photo de couverture extraits du template PowerPoint Quick fourni —
 // lus au premier export (pas au chargement du module : une erreur ici ne doit
@@ -300,7 +308,7 @@ router.get('/:id/export.pptx', async (req, res, next) => {
       return img ? `image/${img.extension};base64,` + img.buffer.toString('base64') : null;
     }
 
-    const { default: PptxGenJS } = await import('pptxgenjs');
+    const PptxGenJS = require('pptxgenjs');
     const pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_WIDE'; // 13.333" x 7.5"
     const SLIDE_W = 13.333;
