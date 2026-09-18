@@ -10,11 +10,13 @@ export default function CameraOverlay() {
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState('');
+  const [camReady, setCamReady] = useState(false);
 
   useEffect(() => {
     if (!request) return;
     setLabel((request.labels && request.labels[0] && request.labels[0].value) || null);
     setErr(null);
+    setCamReady(false);
     const md = navigator.mediaDevices;
     if (!md || !md.getUserMedia) {
       setErr('Aperçu caméra indisponible ici. Sur téléphone, « Galerie » ouvre directement l’appareil photo.');
@@ -25,6 +27,7 @@ export default function CameraOverlay() {
         streamRef.current = stream;
         if (videoRef.current) videoRef.current.srcObject = stream;
         setErr(null);
+        setCamReady(true);
       })
       .catch(() => setErr('Accès caméra refusé ou bloqué dans l’aperçu. Utilisez « Galerie » — sur téléphone, cela ouvre l’appareil photo.'));
 
@@ -160,6 +163,27 @@ export default function CameraOverlay() {
             pointerEvents: 'none'
           }}
         />
+        {!camReady && !err && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              color: '#f5ead8',
+              background: '#1a1613'
+            }}
+          >
+            <svg className="spinner" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.75" strokeLinecap="round">
+              <circle cx="12" cy="12" r="9" opacity="0.25" />
+              <path d="M21 12a9 9 0 0 0-9-9" />
+            </svg>
+            <div style={{ fontSize: 12.5, opacity: 0.8 }}>Ouverture de la caméra…</div>
+          </div>
+        )}
         {err && (
           <div
             style={{
@@ -236,7 +260,7 @@ export default function CameraOverlay() {
           <button
             type="button"
             onClick={shoot}
-            disabled={busy}
+            disabled={busy || !camReady}
             aria-label="Déclencher"
             style={{
               width: 74,
@@ -248,7 +272,7 @@ export default function CameraOverlay() {
             }}
           />
           <div style={{ width: 96, fontSize: 11, opacity: 0.75, lineHeight: 1.4 }}>
-            {busy ? step || 'Envoi…' : err ? 'Aperçu indisponible' : 'Cadrez l’échantillon dans le repère'}
+            {busy ? step || 'Envoi…' : err ? 'Aperçu indisponible' : !camReady ? 'Chargement…' : 'Cadrez l’échantillon dans le repère'}
           </div>
         </div>
       </div>

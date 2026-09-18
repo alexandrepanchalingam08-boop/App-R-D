@@ -10,7 +10,7 @@ const SUGGESTIONS = ['cacao 28%', 'benchmark', 'CDC-284', 'Karim B.'];
 
 export default function Historique() {
   useSetPageMeta({ kicker: 'Historique', heading: 'Dégustations', showNew: true });
-  const { sessions, loading, refresh } = useData();
+  const { sessions, loading, mergeSession, removeSession } = useData();
   const navigate = useNavigate();
   const [q, setQ] = useState('');
   const [confirm, setConfirm] = useState(null);
@@ -21,8 +21,9 @@ export default function Historique() {
   async function doDelete(sessionId, versionId) {
     setBusy(true);
     try {
-      await api.deleteVersion(sessionId, versionId);
-      await refresh();
+      const res = await api.deleteVersion(sessionId, versionId);
+      if (res.sessionDeleted) removeSession(sessionId);
+      else mergeSession(res.session);
     } finally {
       setBusy(false);
       setConfirm(null);

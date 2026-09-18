@@ -31,6 +31,10 @@ function parseFreeIngredients(text) {
     .filter(Boolean);
 }
 
+function loadSession(id) {
+  return prisma.tastingSession.findUnique({ where: { id }, include: sessionInclude });
+}
+
 router.get('/', async (req, res) => {
   const sessions = await prisma.tastingSession.findMany({
     include: sessionInclude,
@@ -127,7 +131,8 @@ router.post('/:id/versions', async (req, res) => {
     },
     include: { composition: true, grades: true }
   });
-  res.status(201).json({ version: serializeVersion(version) });
+  const full = await loadSession(session.id);
+  res.status(201).json({ version: serializeVersion(version), session: serializeSession(full) });
 });
 
 router.patch('/:id/versions/:versionId/close', async (req, res) => {
@@ -138,7 +143,8 @@ router.patch('/:id/versions/:versionId/close', async (req, res) => {
     data: { closed: true },
     include: { composition: true, grades: true }
   });
-  res.json({ version: serializeVersion(updated) });
+  const full = await loadSession(req.params.id);
+  res.json({ version: serializeVersion(updated), session: serializeSession(full) });
 });
 
 router.delete('/:id/versions/:versionId', async (req, res) => {
@@ -151,7 +157,8 @@ router.delete('/:id/versions/:versionId', async (req, res) => {
     await prisma.tastingSession.delete({ where: { id: req.params.id } });
     return res.json({ ok: true, sessionDeleted: true });
   }
-  res.json({ ok: true, sessionDeleted: false });
+  const full = await loadSession(req.params.id);
+  res.json({ ok: true, sessionDeleted: false, session: serializeSession(full) });
 });
 
 router.post('/:id/versions/:versionId/grades', async (req, res) => {
@@ -181,7 +188,8 @@ router.post('/:id/versions/:versionId/grades', async (req, res) => {
       comment: comment?.trim() || 'Grille saisie sans commentaire.'
     }
   });
-  res.status(201).json({ grade: serializeGrade(grade) });
+  const full = await loadSession(req.params.id);
+  res.status(201).json({ grade: serializeGrade(grade), session: serializeSession(full) });
 });
 
 router.patch('/:id/buyer', requireRD, async (req, res) => {
@@ -251,7 +259,8 @@ router.put('/:id/price', async (req, res) => {
       byUserId: req.user.id
     }
   });
-  res.json({ price });
+  const full = await loadSession(session.id);
+  res.json({ price, session: serializeSession(full) });
 });
 
 export default router;

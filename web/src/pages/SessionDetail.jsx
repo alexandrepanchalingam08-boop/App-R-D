@@ -15,7 +15,7 @@ export default function SessionDetail() {
   const { id } = useParams();
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { sessions, users, loading, findSession, refresh, mergeSession } = useData();
+  const { sessions, users, loading, findSession, mergeSession, removeSession } = useData();
   const { user, isRD } = useAuth();
   const { openCamera } = useCamera();
 
@@ -81,7 +81,7 @@ export default function SessionDetail() {
         ? { ver: nv.ver, code: nv.code, date: nv.date, composition: nvComp, procede: nv.procede }
         : { ver: nv.ver, code: nv.code, date: nv.date, ingredients: nv.ing, procede: nv.procede };
       const res = await api.addVersion(session.id, payload);
-      await refresh();
+      mergeSession(res.session);
       setNewOpen(false);
       selectVersion(res.version.id);
     } catch (e) {
@@ -94,8 +94,8 @@ export default function SessionDetail() {
   async function closeVersion() {
     setBusy(true);
     try {
-      await api.closeVersion(session.id, currentVersion.id);
-      await refresh();
+      const res = await api.closeVersion(session.id, currentVersion.id);
+      mergeSession(res.session);
     } finally {
       setBusy(false);
     }
@@ -106,10 +106,11 @@ export default function SessionDetail() {
     try {
       const res = await api.deleteVersion(session.id, currentVersion.id);
       if (res.sessionDeleted) {
+        removeSession(session.id);
         navigate('/en-cours');
         return;
       }
-      await refresh();
+      mergeSession(res.session);
       setConfirmVer(false);
     } finally {
       setBusy(false);
@@ -120,6 +121,7 @@ export default function SessionDetail() {
     setBusy(true);
     try {
       await api.deleteSession(session.id);
+      removeSession(session.id);
       navigate('/en-cours');
     } finally {
       setBusy(false);
@@ -128,24 +130,24 @@ export default function SessionDetail() {
 
   async function onSetBuyer(e) {
     setBuyerSel(e.target.value);
-    await api.setBuyer(session.id, e.target.value || null);
-    await refresh();
+    const res = await api.setBuyer(session.id, e.target.value || null);
+    mergeSession(res.session);
   }
   async function onToggleFR() {
-    await api.toggleFR(session.id);
-    await refresh();
+    const res = await api.toggleFR(session.id);
+    mergeSession(res.session);
   }
   async function onSetComite(e) {
     setComiteVal(e.target.value);
-    await api.setComite(session.id, e.target.value || null);
-    await refresh();
+    const res = await api.setComite(session.id, e.target.value || null);
+    mergeSession(res.session);
   }
   async function savePrice() {
     if (!priceForm.amount.trim() || !priceForm.dose.trim()) return;
     setBusy(true);
     try {
-      await api.savePrice(session.id, priceForm);
-      await refresh();
+      const res = await api.savePrice(session.id, priceForm);
+      mergeSession(res.session);
     } catch (e) {
       setErr(e.message);
     } finally {

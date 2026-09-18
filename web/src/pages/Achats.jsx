@@ -9,7 +9,7 @@ import { api } from '../api.js';
 
 export default function Achats() {
   useSetPageMeta({ kicker: 'Achats', heading: 'Mes ingrédients' });
-  const { sessions, loading, refresh } = useData();
+  const { sessions, loading, mergeSession } = useData();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
@@ -45,8 +45,8 @@ export default function Achats() {
     if (!f.amount.trim() || !f.dose.trim()) return;
     setBusyId(s.id);
     try {
-      await api.savePrice(s.id, f);
-      await refresh();
+      const res = await api.savePrice(s.id, f);
+      mergeSession(res.session);
       setForms((prev) => ({ ...prev, [s.id]: { amount: '', dose: '', unit: f.unit, date: f.date } }));
     } finally {
       setBusyId(null);

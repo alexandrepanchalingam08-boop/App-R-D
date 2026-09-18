@@ -19,7 +19,7 @@ function blankProfile() {
 export default function Saisie() {
   const { sessionId, versionId } = useParams();
   const navigate = useNavigate();
-  const { findSession, refresh } = useData();
+  const { findSession, mergeSession } = useData();
   const { user } = useAuth();
   const { openCamera } = useCamera();
 
@@ -48,8 +48,8 @@ export default function Saisie() {
     setBusy(true);
     setErr(null);
     try {
-      await api.addGrade(session.id, version.id, { tasterName: name.trim(), hedonicRaw: note, profile, comment });
-      await refresh();
+      const res = await api.addGrade(session.id, version.id, { tasterName: name.trim(), hedonicRaw: note, profile, comment });
+      mergeSession(res.session);
       navigate('/session/' + session.id + '?v=' + version.id);
     } catch (e) {
       setErr(e.message);

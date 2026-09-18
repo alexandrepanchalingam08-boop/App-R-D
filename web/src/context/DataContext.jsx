@@ -35,14 +35,23 @@ export function DataProvider({ children }) {
 
   const findSession = useCallback((id) => sessions.find((s) => s.id === id) || null, [sessions]);
 
-  // Remplace une session dans le cache local sans refaire un GET /sessions complet —
-  // utile après un upload de photo, où le serveur renvoie déjà la session à jour.
+  // Met à jour (ou insère) une session dans le cache local sans refaire un GET
+  // /sessions complet — la plupart des routes de mutation renvoient déjà la
+  // session à jour, ce qui évite de recharger TOUTES les sessions à chaque
+  // petite action (ajouter une version, noter une grille, etc.).
   const mergeSession = useCallback((session) => {
-    setSessions((prev) => prev.map((s) => (s.id === session.id ? session : s)));
+    setSessions((prev) => {
+      const exists = prev.some((s) => s.id === session.id);
+      return exists ? prev.map((s) => (s.id === session.id ? session : s)) : [session, ...prev];
+    });
+  }, []);
+
+  const removeSession = useCallback((id) => {
+    setSessions((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
   return (
-    <DataContext.Provider value={{ sessions, users, loading, error, refresh, findSession, mergeSession }}>
+    <DataContext.Provider value={{ sessions, users, loading, error, refresh, findSession, mergeSession, removeSession }}>
       {children}
     </DataContext.Provider>
   );

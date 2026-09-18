@@ -21,7 +21,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 export default function Create() {
   useSetPageMeta({ kicker: 'Nouveau', heading: 'Créer une session', showBack: true });
-  const { sessions, refresh } = useData();
+  const { sessions, mergeSession } = useData();
   const navigate = useNavigate();
 
   const [kind, setKind] = useState('PRODUIT_COMPLET');
@@ -75,7 +75,7 @@ export default function Create() {
         prixVenteUber,
         prixVenteUnite
       });
-      await refresh();
+      mergeSession(res.session);
       navigate('/session/' + res.session.id);
     } catch (e) {
       setErr(e.message);
